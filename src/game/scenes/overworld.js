@@ -2,9 +2,15 @@ import k from "../core/kaplay.js"
 import { attachPlayerJumpControls, attachPlayerMovement, createPlayer } from "../entities/player.js"
 import { addOverworldPlatforms } from "./overworldPlatforms.js"
 import { createOverworldBattle } from "./overworldBattle.js"
+import { loadLevel } from "../level/loadLevel.js"
+import {gameState} from "../core/state.js";
+
+import level1 from "../levels/level1.json"
+
+console.log("Imported level1:", level1)
+
 
 k.scene("overworld", () => {
-
 
     k.add([
         k.rect(640, 360),
@@ -49,11 +55,21 @@ k.scene("overworld", () => {
     })
 
     // --- Ground ---
-    addOverworldPlatforms(k)
+    if (window.__LEVEL_DATA__) {
+        loadLevel(k, window.__LEVEL_DATA__)
+    } else {
+        loadLevel(k, level1)
+    }
 
 
     // --- Player ---
-    const player = createPlayer(k, { x: 80, y: 200 })
+    const spawn = window.__LEVEL_DATA__
+        ? loadLevel(k, window.__LEVEL_DATA__)
+        : loadLevel(k, level1)
+
+    const spawnPos = spawn ?? { x: 80, y: 200 }
+
+    const player = createPlayer(k, spawnPos)
 
     const battle = createOverworldBattle(k)
 
@@ -108,5 +124,8 @@ k.scene("overworld", () => {
 
     k.onKeyPress("b", () => {
         battle.startBattleOverlay()
+    })
+    k.onKeyPress("9", () => {
+        k.go("editor")
     })
 })
