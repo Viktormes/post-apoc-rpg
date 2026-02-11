@@ -59,6 +59,7 @@ export function editorScene(k) {
                     k.pos(b.x, b.y),
                     k.color(...COLORS.spawn),
                     k.z(1000),
+                    "editorSpawn",
                 ])
             } else {
                 k.add([
@@ -67,6 +68,7 @@ export function editorScene(k) {
                     k.area(),
                     k.body({ isStatic: true }),
                     k.color(...COLORS[b.type]),
+                    "editorBlock",
                 ])
             }
         }
@@ -145,6 +147,7 @@ export function editorScene(k) {
                 k.pos(block.x, block.y),
                 k.color(...COLORS.spawn),
                 k.z(1000),
+                "editorSpawn",
             ])
 
             return
@@ -171,8 +174,11 @@ export function editorScene(k) {
             spawnPreview.pos = worldPos
         }
 
+
         if (!startPos || !preview) return
 
+
+        const m = k.toWorld(k.mousePos())
         const x = Math.min(startPos.x, m.x)
         const y = Math.min(startPos.y, m.y)
         const w = Math.abs(m.x - startPos.x)
@@ -204,11 +210,69 @@ export function editorScene(k) {
             k.area(),
             k.body({ isStatic: true }),
             k.color(...COLORS[currentType]),
+            "editorBlock",
         ])
 
         preview.destroy()
         preview = null
         startPos = null
+    })
+
+
+    k.onMousePress("right", () => {
+
+        const worldPos = k.toWorld(k.mousePos())
+
+        // Find topmost block under cursor
+        const hits = k.get("editorBlock").filter(e =>
+            worldPos.x >= e.pos.x &&
+            worldPos.x <= e.pos.x + e.width &&
+            worldPos.y >= e.pos.y &&
+            worldPos.y <= e.pos.y + e.height
+        )
+
+        if (hits.length > 0) {
+            const target = hits[hits.length - 1]
+
+            // Remove from blocks array
+            for (let i = blocks.length - 1; i >= 0; i--) {
+                const b = blocks[i]
+                if (
+                    b.x === target.pos.x &&
+                    b.y === target.pos.y &&
+                    b.w === target.width &&
+                    b.h === target.height
+                ) {
+                    blocks.splice(i, 1)
+                    break
+                }
+            }
+
+            target.destroy()
+            localStorage.setItem("autosave_level", JSON.stringify(blocks))
+            return
+        }
+
+        // Check spawn separately
+        if (spawnEntity) {
+            if (
+                worldPos.x >= spawnEntity.pos.x &&
+                worldPos.x <= spawnEntity.pos.x + 16 &&
+                worldPos.y >= spawnEntity.pos.y &&
+                worldPos.y <= spawnEntity.pos.y + 16
+            ) {
+                spawnEntity.destroy()
+                spawnEntity = null
+
+                for (let i = blocks.length - 1; i >= 0; i--) {
+                    if (blocks[i].type === "spawn") {
+                        blocks.splice(i, 1)
+                    }
+                }
+
+                localStorage.setItem("autosave_level", JSON.stringify(blocks))
+            }
+        }
     })
 
     // ---------- Export ----------

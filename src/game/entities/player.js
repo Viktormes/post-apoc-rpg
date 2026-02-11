@@ -9,6 +9,7 @@ export function createPlayer(k, { x = 80, y = 200 } = {}) {
             jumpForce: 520,
         }),
         k.color(10, 20, 30),
+        "player",
     ])
 
     player.weapon = gameState.playerWeapon
@@ -37,6 +38,29 @@ export function attachPlayerJumpControls(k, player, opts = {}) {
 }
 
 // ... existing code ...
+
+export function spawnPlayerTrail(k, entity, {
+    lifetime = 0.25,
+    opacity = 0.6,
+} = {}) {
+
+    const trail = k.add([
+        k.rect(entity.width, entity.height),
+        k.pos(entity.pos.x, entity.pos.y),
+        k.color(entity.color.r, entity.color.g, entity.color.b),
+        k.opacity(opacity),
+        k.z(entity.z ? entity.z - 1 : 0),
+        k.fixed?.() ?? undefined,
+    ])
+
+    k.tween(trail.opacity, 0, lifetime, (v) => {
+        trail.opacity = v
+    })
+
+    k.wait(lifetime, () => {
+        trail.destroy()
+    })
+}
 
 export function attachPlayerMovement(k, player, opts = {}) {
     const {
