@@ -8,7 +8,7 @@ export function createPlayer(k, { x = 80, y = 200 } = {}) {
         k.body({
             jumpForce: 520,
         }),
-        k.color(10, 20, 30),
+        k.color(100, 220, 160),
         "player",
     ])
 
@@ -47,7 +47,7 @@ export function spawnPlayerTrail(k, entity, {
     const trail = k.add([
         k.rect(entity.width, entity.height),
         k.pos(entity.pos.x, entity.pos.y),
-        k.color(entity.color.r, entity.color.g, entity.color.b),
+        k.color(100, 220, 160),
         k.opacity(opacity),
         k.z(entity.z ? entity.z - 1 : 0),
         k.fixed?.() ?? undefined,
@@ -99,7 +99,7 @@ export function attachPlayerMovement(k, player, opts = {}) {
                 const puff = k.add([
                     k.circle(landingPuffRadius),
                     k.pos(player.pos.x + 12, player.pos.y + 30),
-                    k.color(10, 20, 30),
+                    k.color(player.color),
                     k.opacity(0.6),
                     k.scale(1),
                     k.z(player.z ? player.z - 1 : 0),
@@ -129,7 +129,7 @@ export function attachPlayerMovement(k, player, opts = {}) {
                 const trail = k.add([
                     k.rect(24, 28),
                     k.pos(player.pos.x, player.pos.y),
-                    k.color(10, 20, 30),
+                    k.color(player.color),
                     k.opacity(0.6),
                     k.z(player.z ? player.z - 1 : 0),
                 ])

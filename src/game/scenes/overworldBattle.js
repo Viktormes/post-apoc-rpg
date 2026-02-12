@@ -1,7 +1,6 @@
 import { gameState } from "../core/state.js"
 import { createTypewriter, glitchText, createScreenFlash } from "../ui/textFx.js"
 import { pickRandomEnemy } from "../entities/enemy.js"
-import { spawnPlayerTrail } from "../entities/player.js"
 
 export function createOverworldBattle(k) {
     let inBattle = false
@@ -198,9 +197,28 @@ export function createOverworldBattle(k) {
             cornerBR: [120, 200, 120],
         })
 
-        k.tween(0, 0.35, 0.25, (v) => {
+        k.tween(0, 0.85, 0.25, (v) => {
             vignette.opacity = v
         })
+
+        const whiteFlash = addUI([
+            k.rect(640, 360),
+            k.pos(0, 0),
+            k.color(255, 255, 255),
+            k.opacity(0.8),   // stronger than red
+            k.fixed(),
+            k.z(901),
+        ])
+
+// Fade out quickly
+        k.tween(0.8, 0, 0.18, v => {
+            whiteFlash.opacity = v
+        })
+
+        k.wait(0.18, () => {
+            whiteFlash.destroy()
+        })
+
 
         const { screenFlash } = createScreenFlash(k)
 
@@ -276,9 +294,7 @@ export function createOverworldBattle(k) {
 
         const typeMessage = createTypewriter(k, messageText)
 
-        // =====================================================
         // Helpers / FX (unchanged behavior)
-        // =====================================================
 
         function messageDuration(text, speed = 0.02, extra = 0.3) {
             return text.length * speed + extra
@@ -353,8 +369,9 @@ export function createOverworldBattle(k) {
                 overworldPlayer.color.g,
                 overworldPlayer.color.b
             ),
+            k.opacity(1),
             k.fixed(),
-            k.z(903),
+            k.z(99995),
         ])
 
 
@@ -362,70 +379,127 @@ export function createOverworldBattle(k) {
             k.rect(enemyTemplate.width, enemyTemplate.height),
             k.pos(450, 200),
             k.color(...enemyTemplate.color),
+            k.opacity(1),
             k.fixed(),
-            k.z(903),
+            k.z(905),
         ])
 
         // =====================================================
         // Player actions (unchanged)
         // =====================================================
 
-        function playerAttack({ endTurn = true } = {}) {
+
+        function localShake(entity, intensity = 2, duration = 0.08) {
+            let elapsed = 0
+
+            const basePos = entity.pos.clone()
+
+            function shakeStep() {
+                elapsed += k.dt()
+                if (elapsed >= duration) {
+                    entity.pos = basePos
+                    return
+                }
+
+                const offsetX = k.randi(-intensity, intensity)
+                const offsetY = k.randi(-intensity, intensity)
+
+                entity.pos = k.vec2(basePos.x + offsetX, basePos.y + offsetY)
+
+                k.wait(0.01, shakeStep)
+            }
+
+            shakeStep()
+        }
+
+        function backOffWithRev(entity, fromX, toX, baseY, dur = 0.08, shakeX = 2, shakeY = 1) {
+            k.tween(fromX, toX, dur, (v) => {
+                entity.pos.x = v + k.randi(-shakeX, shakeX)
+                entity.pos.y = baseY + k.randi(-shakeY, shakeY)
+            })
+        }
+
+        function doPlayerHit({ endTurn = true, onDone = () => {} } = {}) {
+            if (!inBattle) return
             if (turn !== "player") return
 
-            // Lunge
-            k.tween(battlePlayer.pos.x, 350, 0.1, v => battlePlayer.pos.x = v)
+            const startX = battlePlayer.pos.x
+            const baseY = battlePlayer.pos.y
+            const backX = startX - 20
+            const attackX = 350
 
-            k.wait(0.1, () => {
+            // Back off + rev shake (works)
+            backOffWithRev(battlePlayer, startX, backX, baseY, 0.08, 2, 1)
 
-                const baseDamage = k.randi(
-                    gameState.playerWeapon.damageMin,
-                    gameState.playerWeapon.damageMax
-                )
+            // Small anticipation delay
+            k.wait(0.12, () => {
 
-                enemyHP = Math.max(0, enemyHP - baseDamage)
-
-                const originalColor = battleEnemy.color.clone()
-                battleEnemy.color = k.rgb(255, 60, 60)
-
-                k.wait(0.1, () => {
-                    battleEnemy.color = originalColor
+                // Lunge forward
+                k.tween(backX, attackX, 0.1, (v) => {
+                    battlePlayer.pos.x = v
+                    battlePlayer.pos.y = baseY
+                    // optional: trail here if you want
                 })
 
-                k.shake(10)
-                spawnAttackParticles(battleEnemy.pos.x, battleEnemy.pos.y)
-                applyKnockback(battleEnemy, 1, 15 + baseDamage * 2, 0.08)
+                // Impact moment
+                k.wait(0.1, () => {
+                    const dmg = k.randi(gameState.playerWeapon.damageMin, gameState.playerWeapon.damageMax)
+                    enemyHP = Math.max(0, enemyHP - dmg)
 
-                updateStats()
-                screenFlash()
-                shakeFrame(enemyPanel, 6, 0.12)
-                showDamage(enemyPanel, baseDamage, [255, 200, 100])
+                    // Enemy flash
+                    const originalColor = battleEnemy.color.clone()
+                    battleEnemy.color = k.rgb(255, 60, 60)
+                    k.wait(0.08, () => battleEnemy.color = originalColor)
 
-                const msg = `You strike with your ${gameState.playerWeapon.name.toLowerCase()} for ${baseDamage} damage.`
-                typeMessage(msg, { speed: 0.03 })
+                    // Impact FX (per-hit)
+                    k.shake(10)
+                    spawnAttackParticles(battleEnemy.pos.x, battleEnemy.pos.y)
 
-                k.tween(battlePlayer.pos.x, 150, 0.1, v => battlePlayer.pos.x = v)
+                    updateStats()
+                    screenFlash()
+                    shakeFrame(enemyPanel, 6, 0.12)
+                    showDamage(enemyPanel, dmg, [255, 200, 100])
 
-                k.wait(0.5, () => {
+                    const msg = `You strike with your ${gameState.playerWeapon.name.toLowerCase()} for ${dmg} damage.`
+                    typeMessage(msg, { speed: 0.03 })
 
-                    if (enemyHP <= 0) {
-                        win()
-                        return
-                    }
+                    // Return
+                    k.tween(attackX, startX, 0.12, (v) => {
+                        battlePlayer.pos.x = v
+                        battlePlayer.pos.y = baseY
+                    })
 
-                    if (!endTurn) {
-                        awaitingEnemy = false
-                        return
-                    }
+                    // Resolve after return
+                    k.wait(0.25, () => {
+                        if (enemyHP <= 0) {
+                            win()
+                            return
+                        }
 
-                    turn = "enemy"
-                    awaitingEnemy = false
+                        if (endTurn) {
+                            turn = "enemy"
+                            // give a beat before enemy goes (tune this)
+                            k.wait(0.6, () => enemyTurn())
+                        }
 
-                    // Add dramatic delay before enemy actually attacks
-                    k.wait(0.6, () => {
-                        enemyTurn()
+                        onDone()
                     })
                 })
+            })
+        }
+
+
+
+        function playerAttack() {
+            if (!inBattle) return
+            if (turn !== "player" || awaitingEnemy) return
+
+            awaitingEnemy = true
+            doPlayerHit({
+                endTurn: true,
+                onDone: () => {
+                    awaitingEnemy = false
+                },
             })
         }
 
@@ -502,7 +576,9 @@ export function createOverworldBattle(k) {
         }
 
         function playerDoubleAttack() {
+            if (!inBattle) return
             if (turn !== "player" || awaitingEnemy) return
+
             if (gameState.energy < 4) {
                 typeMessage("Not enough energy. (Needs 4)")
                 return
@@ -513,30 +589,28 @@ export function createOverworldBattle(k) {
 
             awaitingEnemy = true
 
-            // First hit
-            playerAttack({ endTurn: false })
+            // First hit (no end turn)
+            doPlayerHit({
+                endTurn: false,
+                onDone: () => {
 
-            k.wait(0.6, () => {
+                    // If the first hit killed it, win() already fired
+                    if (!inBattle || turn === "end") return
 
-                if (enemyHP <= 0) {
-                    win()
-                    return
-                }
+                    // Second hit (still no end turn)
+                    doPlayerHit({
+                        endTurn: false,
+                        onDone: () => {
 
-                // Second hit
-                playerAttack({ endTurn: false })
+                            if (!inBattle || turn === "end") return
 
-                k.wait(0.6, () => {
-
-                    if (enemyHP <= 0) {
-                        win()
-                        return
-                    }
-
-                    awaitingEnemy = false
-                    turn = "enemy"
-                    enemyTurn()
-                })
+                            // Now enemy turn
+                            turn = "enemy"
+                            awaitingEnemy = false
+                            k.wait(0.6, () => enemyTurn())
+                        },
+                    })
+                },
             })
         }
 

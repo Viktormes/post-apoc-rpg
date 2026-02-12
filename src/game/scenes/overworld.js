@@ -44,7 +44,7 @@ k.scene("overworld", () => {
     const nearLayer = k.add([
         k.rect(2000, 120),
         k.pos(0, 240),
-        k.color(130, 170, 210),
+        k.color(130, 170, 200),
         k.z(-70),
         k.fixed(),
     ])
