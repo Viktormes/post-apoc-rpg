@@ -3,7 +3,7 @@ import { weapons } from "../entities/weapons.js"
 export const gameState = {
     playerHP: 30,
     maxHP: 30,
-    playerWeapon: weapons.ironSword,
+    playerWeapon: weapons.copperSword,
     inventory: [],
     flags: {},
     energy: 6,

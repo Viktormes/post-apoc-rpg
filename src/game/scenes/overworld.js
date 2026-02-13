@@ -2,58 +2,59 @@ import k from "../core/kaplay.js"
 import { attachPlayerJumpControls, attachPlayerMovement, createPlayer } from "../entities/player.js"
 import { createOverworldBattle } from "./overworldBattle.js"
 import { loadLevel } from "../level/loadLevel.js"
-import {gameState} from "../core/state.js";
+import { gameState } from "../core/state.js"
+import { blockTypes } from "../level/blockTypes.js"
 
 import level1 from "../levels/level1.json"
-import {enemyTypes, spawnOverworldEnemy} from "../entities/enemy.js";
-
-console.log("Imported level1:", level1)
-
+import { enemyTypes, spawnOverworldEnemy } from "../entities/enemy.js"
 
 k.scene("overworld", () => {
 
-    const sectionHeight = k.height() / 3
+    const screenW = k.width()
+    const screenH = k.height()
+    const sectionHeight = screenH / 3
 
-    // --- Background ---
+    // --- Sky ---
     k.add([
-        k.rect(2000, sectionHeight),
+        k.rect(screenW, screenH),
         k.pos(0, 0),
         k.color(120, 180, 255),
         k.fixed(),
         k.z(-100),
     ])
 
-    const farLayer = k.add([
-        k.rect(2000, sectionHeight),
-        k.pos(0, 0),
-        k.pos(0, 0),
-        k.color(90, 130, 170),
-        k.z(-90),
-        k.fixed(),
-    ])
+    // --- Infinite Parallax Layer Factory ---
+    function createParallaxLayer(color, y, z) {
 
-    const midLayer = k.add([
-        k.rect(2000, sectionHeight),
-        k.pos(0, sectionHeight),
-        k.color(110, 150, 190),
-        k.z(-80),
-        k.fixed(),
-    ])
+        const layer1 = k.add([
+            k.rect(screenW, sectionHeight),
+            k.pos(0, y),
+            k.color(...color),
+            k.fixed(),
+            k.z(z),
+        ])
 
-    const nearLayer = k.add([
-        k.rect(2000, sectionHeight),
-        k.pos(0, sectionHeight * 2),
-        k.color(130, 170, 200),
-        k.z(-70),
-        k.fixed(),
-    ])
+        const layer2 = k.add([
+            k.rect(screenW, sectionHeight),
+            k.pos(screenW, y),
+            k.color(...color),
+            k.fixed(),
+            k.z(z),
+        ])
+
+        return { layer1, layer2 }
+    }
+
+    const far = createParallaxLayer([90, 130, 170], 0, -90)
+    const mid = createParallaxLayer([110, 150, 190], sectionHeight, -80)
+    const near = createParallaxLayer([130, 170, 200], sectionHeight * 2, -70)
 
     // --- Camera Anchor ---
-    const cameraAnchor = k.add([ k.pos(0, 0) ])
+    const cameraAnchor = k.add([k.pos(0, 0)])
 
-    // --- Load Level (ONLY ONCE) ---
+    // --- Load Level ---
     const levelData = window.__LEVEL_DATA__ ?? level1
-    window.__LEVEL_DATA__ = null  // clear runtime level after use
+    window.__LEVEL_DATA__ = null
 
     const { spawn, enemySpawns } = loadLevel(k, levelData)
 
@@ -63,7 +64,6 @@ k.scene("overworld", () => {
 
     // --- Player ---
     const player = createPlayer(k, spawnPos.clone())
-
     const battle = createOverworldBattle(k)
 
     attachPlayerJumpControls(k, player, {
@@ -80,7 +80,6 @@ k.scene("overworld", () => {
     })
 
     enemySpawns.forEach(spawnData => {
-
         spawnOverworldEnemy(
             k,
             enemyTypes[spawnData.enemyId],
@@ -90,25 +89,43 @@ k.scene("overworld", () => {
                 battle.startBattleOverlay(enemyTemplate, enemyEntity, player)
             }
         )
-
     })
+
+    // --- Infinite Parallax Update ---
+    function updateLayer(layerObj, speed) {
+
+        const camX = cameraAnchor.pos.x
+        const offset = (-camX * speed) % screenW
+
+        layerObj.layer1.pos.x = offset
+        layerObj.layer2.pos.x = offset + screenW
+
+        if (layerObj.layer1.pos.x <= -screenW) {
+            layerObj.layer1.pos.x += screenW * 2
+        }
+
+        if (layerObj.layer2.pos.x <= -screenW) {
+            layerObj.layer2.pos.x += screenW * 2
+        }
+    }
 
     // --- Follow + Respawn Logic ---
     k.onUpdate(() => {
 
-        const maxCameraY = k.height() * 0.5
+        const maxCameraY = screenH * 0.5
+
         cameraAnchor.pos.x = player.pos.x + 120
         cameraAnchor.pos.y = Math.min(player.pos.y, maxCameraY)
 
         k.setCamPos(cameraAnchor.pos)
 
-        const camX = cameraAnchor.pos.x
-        farLayer.pos.x = -camX * 0.1
-        midLayer.pos.x = -camX * 0.2
-        nearLayer.pos.x = -camX * 0.35
+        // Parallax
+        updateLayer(far, 0.1)
+        updateLayer(mid, 0.2)
+        updateLayer(near, 0.35)
 
         // --- Fall / Respawn ---
-        const fallY = k.height() + 20
+        const fallY = screenH + 20
         const fallDamage = 5
 
         if (player.pos.y > fallY) {
@@ -122,7 +139,6 @@ k.scene("overworld", () => {
                 player.vel.y = 0
             }
 
-            // reset camera immediately
             cameraAnchor.pos.x = spawnPos.x + 120
             cameraAnchor.pos.y = Math.min(spawnPos.y, maxCameraY)
         }
@@ -130,7 +146,7 @@ k.scene("overworld", () => {
 
     // --- UI ---
     k.add([
-        k.text("A/D move · Space jump · B battle · 9 editor", {
+        k.text("A/D move · Space jump · 9 editor", {
             size: 14,
             styles: false,
         }),

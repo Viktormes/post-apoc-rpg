@@ -1,3 +1,7 @@
+
+import { blockTypes } from "../level/blockTypes.js"
+import { enemyTypes } from "../entities/enemy.js"
+
 export function editorScene(k) {
 
     let spawnEntity = null
@@ -5,6 +9,7 @@ export function editorScene(k) {
     let enemyPreview = null
     let currentEnemyType = "ghoul"
     const ENEMY_ORDER = ["ghoul", "orc", "golem"]
+
 
 
     // --- Reset Camera ---
@@ -16,15 +21,6 @@ export function editorScene(k) {
     let currentType = "platform"
     let startPos = null
     let preview = null
-
-    // ---------- Styling ----------
-    const COLORS = {
-        ground: [80, 80, 80],
-        platform: [100, 100, 120],
-        cave: [70, 70, 90],
-        spawn: [0, 255, 0],
-        enemy: [200, 50, 50],
-    }
 
 
     // ---------- Camera ----------
@@ -65,17 +61,29 @@ export function editorScene(k) {
                 spawnEntity = k.add([
                     k.rect(16, 16),
                     k.pos(b.x, b.y),
-                    k.color(...COLORS.spawn),
+                    k.color(...blockTypes.spawn.color),
                     k.z(1000),
                     "editorSpawn",
                 ])
+
+            } else if (b.type === "enemy") {
+
+                k.add([
+                    k.rect(b.w, b.h),
+                    k.pos(b.x, b.y),
+                    k.color(...enemyTypes[b.enemyId].color),
+                    k.z(1000),
+                    "editorEnemy",
+                ])
+
             } else {
+
                 k.add([
                     k.rect(b.w, b.h),
                     k.pos(b.x, b.y),
                     k.area(),
                     k.body({ isStatic: true }),
-                    k.color(...COLORS[b.type]),
+                    k.color(...blockTypes[b.type].color),
                     "editorBlock",
                 ])
             }
@@ -113,7 +121,7 @@ export function editorScene(k) {
             spawnPreview = k.add([
                 k.rect(16, 16),
                 k.pos(0, 0),
-                k.color(...COLORS.spawn),
+                k.color(...blockTypes.spawn.color),
                 k.opacity(0.5),
                 k.z(2000),
             ])
@@ -123,7 +131,7 @@ export function editorScene(k) {
             enemyPreview = k.add([
                 k.rect(24, 24),
                 k.pos(0, 0),
-                k.color(...COLORS.enemy),
+                k.color(...enemyTypes[currentEnemyType].color),
                 k.opacity(0.5),
                 k.z(2000),
             ])
@@ -167,18 +175,12 @@ export function editorScene(k) {
             spawnEntity = k.add([
                 k.rect(16, 16),
                 k.pos(block.x, block.y),
-                k.color(...COLORS.spawn),
+                k.color(...blockTypes.spawn.color),
                 k.z(1000),
                 "editorSpawn",
             ])
 
             return
-        }
-
-        const enemyColors = {
-            ghoul: [160, 200, 160],
-            orc: [120, 180, 80],
-            golem: [120, 120, 140],
         }
 
         if (currentType === "enemy") {
@@ -200,7 +202,7 @@ export function editorScene(k) {
             k.add([
                 k.rect(24, 24),
                 k.pos(block.x, block.y),
-                k.color(...enemyColors[currentEnemyType]),
+                k.color(...enemyTypes[currentEnemyType].color),
                 k.z(1000),
                 "editorEnemy",
             ])
@@ -214,7 +216,7 @@ export function editorScene(k) {
         preview = k.add([
             k.rect(1, 1),
             k.pos(startPos),
-            k.color(...COLORS[currentType]),
+            k.color(...blockTypes[currentType].color),
             k.opacity(0.4),
         ])
     })
@@ -261,7 +263,7 @@ export function editorScene(k) {
             k.pos(block.x, block.y),
             k.area(),
             k.body({ isStatic: true }),
-            k.color(...COLORS[currentType]),
+            k.color(...blockTypes[currentType].color),
             "editorBlock",
         ])
 
@@ -348,14 +350,10 @@ export function editorScene(k) {
         const nextIndex = (currentIndex + 1) % ENEMY_ORDER.length
         currentEnemyType = ENEMY_ORDER[nextIndex]
 
-        const enemyColors = {
-            ghoul: [160, 200, 160],
-            orc: [120, 180, 80],
-            golem: [120, 120, 140],
-        }
+
 
         if (enemyPreview) {
-            enemyPreview.color = k.rgb(...enemyColors[currentEnemyType])
+            enemyPreview.color = k.rgb(...enemyTypes[currentEnemyType].color)
         }
 
         updateEditorUI()   // 👈 important

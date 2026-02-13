@@ -1,3 +1,4 @@
+import { blockTypes } from "./blockTypes.js"
 export function loadLevel(k, data) {
 
     let spawnPoint = null
@@ -21,7 +22,8 @@ export function loadLevel(k, data) {
             k.pos(b.x, b.y),
             k.area(),
             k.body({ isStatic: true }),
-            k.color(100, 100, 120),
+            k.color(...blockTypes[b.type].color),
+            "editorBlock",
         ])
     }
 

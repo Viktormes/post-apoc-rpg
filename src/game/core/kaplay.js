@@ -3,6 +3,7 @@ import kaplay from "kaplay"
 const k = kaplay({
     width: window.innerWidth,
     height: window.innerHeight,
+    scale: 1,
     clearColor: [0, 0, 0, 1],
 })
 
