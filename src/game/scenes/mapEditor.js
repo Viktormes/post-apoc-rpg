@@ -2,6 +2,10 @@ export function editorScene(k) {
 
     let spawnEntity = null
     let spawnPreview = null
+    let enemyPreview = null
+    let currentEnemyType = "ghoul"
+    const ENEMY_ORDER = ["ghoul", "orc", "golem"]
+
 
     // --- Reset Camera ---
     k.setCamPos(k.width() / 2, k.height() / 2)
@@ -19,7 +23,9 @@ export function editorScene(k) {
         platform: [100, 100, 120],
         cave: [70, 70, 90],
         spawn: [0, 255, 0],
+        enemy: [200, 50, 50],
     }
+
 
     // ---------- Camera ----------
     let camX = k.width() / 2
@@ -30,8 +36,10 @@ export function editorScene(k) {
         const dt = k.dt()
 
         if (spawnPreview && currentType === "spawn") {
-            const worldPos = k.toWorld(k.mousePos())
-            spawnPreview.pos = worldPos
+            spawnPreview.pos = k.toWorld(k.mousePos())
+        }
+        if (enemyPreview && currentType === "enemy") {
+            enemyPreview.pos = k.toWorld(k.mousePos())
         }
 
         if (!startPos) {
@@ -86,25 +94,39 @@ export function editorScene(k) {
     k.onKeyPress("2", () => setTool("platform"))
     k.onKeyPress("3", () => setTool("cave"))
     k.onKeyPress("4", () => setTool("spawn"))
+    k.onKeyPress("5", () => setTool("enemy"))
 
     function setTool(type) {
         currentType = type
+        updateEditorUI()
+
+        if (spawnPreview) {
+            spawnPreview.destroy()
+            spawnPreview = null
+        }
+        if (enemyPreview) {
+            enemyPreview.destroy()
+            enemyPreview = null
+        }
 
         if (type === "spawn") {
-            if (!spawnPreview) {
-                spawnPreview = k.add([
-                    k.rect(16, 16),
-                    k.pos(0, 0),
-                    k.color(...COLORS.spawn),
-                    k.opacity(0.5),
-                    k.z(2000),
-                ])
-            }
-        } else {
-            if (spawnPreview) {
-                spawnPreview.destroy()
-                spawnPreview = null
-            }
+            spawnPreview = k.add([
+                k.rect(16, 16),
+                k.pos(0, 0),
+                k.color(...COLORS.spawn),
+                k.opacity(0.5),
+                k.z(2000),
+            ])
+        }
+
+        if (type === "enemy") {
+            enemyPreview = k.add([
+                k.rect(24, 24),
+                k.pos(0, 0),
+                k.color(...COLORS.enemy),
+                k.opacity(0.5),
+                k.z(2000),
+            ])
         }
     }
 
@@ -152,6 +174,40 @@ export function editorScene(k) {
 
             return
         }
+
+        const enemyColors = {
+            ghoul: [160, 200, 160],
+            orc: [120, 180, 80],
+            golem: [120, 120, 140],
+        }
+
+        if (currentType === "enemy") {
+
+            const worldPos = k.toWorld(k.mousePos())
+
+            const block = {
+                x: worldPos.x,
+                y: worldPos.y,
+                w: 24,
+                h: 24,
+                type: "enemy",
+                enemyId: currentEnemyType,
+            }
+
+            blocks.push(block)
+            localStorage.setItem("autosave_level", JSON.stringify(blocks))
+
+            k.add([
+                k.rect(24, 24),
+                k.pos(block.x, block.y),
+                k.color(...enemyColors[currentEnemyType]),
+                k.z(1000),
+                "editorEnemy",
+            ])
+
+            return
+        }
+
         // ---- Normal Block Drawing ----
         startPos = worldPos
 
@@ -173,10 +229,6 @@ export function editorScene(k) {
         if (currentType === "spawn" && spawnPreview) {
             spawnPreview.pos = worldPos
         }
-
-
-        if (!startPos || !preview) return
-
 
         const m = k.toWorld(k.mousePos())
         const x = Math.min(startPos.x, m.x)
@@ -224,7 +276,10 @@ export function editorScene(k) {
         const worldPos = k.toWorld(k.mousePos())
 
         // Find topmost block under cursor
-        const hits = k.get("editorBlock").filter(e =>
+        const hits = [
+            ...k.get("editorBlock"),
+            ...k.get("editorEnemy"),
+        ].filter(e =>
             worldPos.x >= e.pos.x &&
             worldPos.x <= e.pos.x + e.width &&
             worldPos.y >= e.pos.y &&
@@ -286,6 +341,26 @@ export function editorScene(k) {
         k.go("overworld")
     })
 
+    k.onKeyPress("q", () => {
+        if (currentType !== "enemy") return
+
+        const currentIndex = ENEMY_ORDER.indexOf(currentEnemyType)
+        const nextIndex = (currentIndex + 1) % ENEMY_ORDER.length
+        currentEnemyType = ENEMY_ORDER[nextIndex]
+
+        const enemyColors = {
+            ghoul: [160, 200, 160],
+            orc: [120, 180, 80],
+            golem: [120, 120, 140],
+        }
+
+        if (enemyPreview) {
+            enemyPreview.color = k.rgb(...enemyColors[currentEnemyType])
+        }
+
+        updateEditorUI()   // 👈 important
+    })
+
     k.onKeyPress("8", () => {
         k.go("overworld")
     })
@@ -306,18 +381,96 @@ export function editorScene(k) {
         URL.revokeObjectURL(url)
     }
 
-    // ---------- UI ----------
-    k.add([
-        k.text(
-            "LEVEL EDITOR\n" +
-            "1 Ground | 2 Platform | 3 Cave | 4 Spawn\n" +
-            "Drag = draw blocks\n" +
-            "Click = place spawn\n" +
-            "WASD = move camera\n" +
-            "P = play test | E = export",
-            { size: 14, styles: false }
-        ),
-        k.pos(20, 20),
-        k.fixed(),
+    const panelWidth = k.width() * 0.20
+    const marginX = k.width() * 0.02
+    const marginY = k.height() * 0.02
+
+    const titleSize = Math.max(16, k.height() * 0.03)
+    const bodySize = Math.max(13, k.height() * 0.022)
+
+// Temporary text to measure height
+    const tempText = k.add([
+        k.text("", {
+            size: bodySize,
+            styles: false,
+            width: panelWidth * 0.85,
+        }),
+        k.pos(0, 0),
+        k.opacity(0),
     ])
+
+    function buildEditorText() {
+        return (
+            "TOOLS\n" +
+            "1 Ground\n" +
+            "2 Platform\n" +
+            "3 Cave\n" +
+            "4 Spawn\n" +
+            "5 Enemy\n\n" +
+            `Current Tool: ${currentType.toUpperCase()}\n\n` +
+            `Enemy Type: ${currentEnemyType.toUpperCase()}\n\n` +
+            "Q  Cycle Enemy\n" +
+            "WASD Move Camera\n" +
+            "P  Play Test\n" +
+            "E  Export"
+        )
+    }
+
+    tempText.text = buildEditorText()
+
+// Calculate dynamic height
+    const dynamicHeight =
+        tempText.height + (k.height() * 0.15)
+
+    tempText.destroy()
+
+// Panel background
+    k.add([
+        k.rect(panelWidth, dynamicHeight),
+        k.pos(marginX, marginY),
+        k.color(15, 20, 30),
+        k.opacity(0.85),
+        k.fixed(),
+        k.z(999),
+    ])
+
+// Accent bar
+    k.add([
+        k.rect(panelWidth, 4),
+        k.pos(marginX, marginY),
+        k.color(80, 120, 200),
+        k.fixed(),
+        k.z(1000),
+    ])
+
+// Title
+    k.add([
+        k.text("MAP EDITOR", { size: titleSize, styles: false }),
+        k.pos(
+            marginX + panelWidth * 0.05,
+            marginY + k.height() * 0.04
+        ),
+        k.color(200, 220, 255),
+        k.fixed(),
+        k.z(1001),
+    ])
+
+// Dynamic text body
+    const uiBody = k.add([
+        k.text(buildEditorText(), {
+            size: bodySize,
+            styles: false,
+            width: panelWidth * 0.85,
+        }),
+        k.pos(
+            marginX + panelWidth * 0.05,
+            marginY + k.height() * 0.10
+        ),
+        k.fixed(),
+        k.z(1001),
+    ])
+
+    function updateEditorUI() {
+        uiBody.text = buildEditorText()
+    }
 }

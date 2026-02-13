@@ -52,8 +52,12 @@ export function glitchText(k, entity, duration = 0.25) {
 }
 
 export function createScreenFlash(k) {
+
+    const W = () => k.width()
+    const H = () => k.height()
+
     const flash = k.add([
-        k.rect(640, 360),
+        k.rect(W(), H()),
         k.pos(0, 0),
         k.color(255, 255, 255),
         k.opacity(0),
@@ -63,7 +67,13 @@ export function createScreenFlash(k) {
 
     let flashT = 0
 
+    // Keep flash covering full screen even if resized
     k.onUpdate(() => {
+
+        // Resize rectangle if screen changes
+        if (flash.width !== W()) flash.width = W()
+        if (flash.height !== H()) flash.height = H()
+
         if (flashT > 0) {
             flashT -= k.dt()
             const a = Math.max(0, flashT / 0.12)

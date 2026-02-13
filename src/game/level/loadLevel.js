@@ -1,12 +1,7 @@
 export function loadLevel(k, data) {
 
-    const COLORS = {
-        ground: [80, 80, 80],
-        platform: [100, 100, 120],
-        cave: [70, 70, 90],
-    }
-
     let spawnPoint = null
+    const enemySpawns = []
 
     for (const b of data) {
 
@@ -15,14 +10,20 @@ export function loadLevel(k, data) {
             continue
         }
 
+        if (b.type === "enemy") {
+            enemySpawns.push(b)
+            continue
+        }
+
+        // normal blocks
         k.add([
             k.rect(b.w, b.h),
             k.pos(b.x, b.y),
             k.area(),
             k.body({ isStatic: true }),
-            k.color(...(COLORS[b.type] ?? COLORS.platform)),
+            k.color(100, 100, 120),
         ])
     }
 
-    return spawnPoint
+    return { spawnPoint, enemySpawns }
 }

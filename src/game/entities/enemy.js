@@ -24,7 +24,6 @@ export function createEnemyTemplate({
     }
 }
 
-
 export const enemyTypes = {
     ghoul: createEnemyTemplate({
         id: "ghoul",

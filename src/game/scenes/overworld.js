@@ -1,6 +1,5 @@
 import k from "../core/kaplay.js"
 import { attachPlayerJumpControls, attachPlayerMovement, createPlayer } from "../entities/player.js"
-import { addOverworldPlatforms } from "./overworldPlatforms.js"
 import { createOverworldBattle } from "./overworldBattle.js"
 import { loadLevel } from "../level/loadLevel.js"
 import {gameState} from "../core/state.js";
@@ -13,12 +12,11 @@ console.log("Imported level1:", level1)
 
 k.scene("overworld", () => {
 
-
-
+    const sectionHeight = k.height() / 3
 
     // --- Background ---
     k.add([
-        k.rect(640, 360),
+        k.rect(2000, sectionHeight),
         k.pos(0, 0),
         k.color(120, 180, 255),
         k.fixed(),
@@ -26,7 +24,8 @@ k.scene("overworld", () => {
     ])
 
     const farLayer = k.add([
-        k.rect(2000, 120),
+        k.rect(2000, sectionHeight),
+        k.pos(0, 0),
         k.pos(0, 0),
         k.color(90, 130, 170),
         k.z(-90),
@@ -34,16 +33,16 @@ k.scene("overworld", () => {
     ])
 
     const midLayer = k.add([
-        k.rect(2000, 120),
-        k.pos(0, 120),
+        k.rect(2000, sectionHeight),
+        k.pos(0, sectionHeight),
         k.color(110, 150, 190),
         k.z(-80),
         k.fixed(),
     ])
 
     const nearLayer = k.add([
-        k.rect(2000, 120),
-        k.pos(0, 240),
+        k.rect(2000, sectionHeight),
+        k.pos(0, sectionHeight * 2),
         k.color(130, 170, 200),
         k.z(-70),
         k.fixed(),
@@ -56,7 +55,7 @@ k.scene("overworld", () => {
     const levelData = window.__LEVEL_DATA__ ?? level1
     window.__LEVEL_DATA__ = null  // clear runtime level after use
 
-    const spawn = loadLevel(k, levelData)
+    const { spawn, enemySpawns } = loadLevel(k, levelData)
 
     const spawnPos = spawn
         ? k.vec2(spawn.x, spawn.y)
@@ -80,20 +79,24 @@ k.scene("overworld", () => {
         inputEnabled: () => !battle.isInBattle(),
     })
 
-    spawnOverworldEnemy(
-        k,
-        enemyTypes.ghoul,
-        spawnPos.x + 200,
-        spawnPos.y - -90,
-        (enemyTemplate, enemyEntity) => {
-            battle.startBattleOverlay(enemyTemplate, enemyEntity, player)
-        }
-    )
+    enemySpawns.forEach(spawnData => {
+
+        spawnOverworldEnemy(
+            k,
+            enemyTypes[spawnData.enemyId],
+            spawnData.x,
+            spawnData.y,
+            (enemyTemplate, enemyEntity) => {
+                battle.startBattleOverlay(enemyTemplate, enemyEntity, player)
+            }
+        )
+
+    })
 
     // --- Follow + Respawn Logic ---
     k.onUpdate(() => {
 
-        const maxCameraY = 180
+        const maxCameraY = k.height() * 0.5
         cameraAnchor.pos.x = player.pos.x + 120
         cameraAnchor.pos.y = Math.min(player.pos.y, maxCameraY)
 
@@ -105,7 +108,7 @@ k.scene("overworld", () => {
         nearLayer.pos.x = -camX * 0.35
 
         // --- Fall / Respawn ---
-        const fallY = 380
+        const fallY = k.height() + 20
         const fallDamage = 5
 
         if (player.pos.y > fallY) {
