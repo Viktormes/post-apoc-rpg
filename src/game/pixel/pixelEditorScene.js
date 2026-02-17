@@ -1,14 +1,44 @@
-import { createPixelEditor } from "./pixelEditorCore.js"
+import {createPixelEditor} from "./pixelEditorCore.js"
 
 export function pixelEditorScene(k) {
 
     const palette = [
         [0, 0, 0],
+        [34, 32, 52],
+        [69, 40, 60],
+        [102, 57, 49],
+        [143, 86, 59],
+        [223, 113, 38],
+        [217, 160, 102],
+        [238, 195, 154],
+
+        [251, 242, 54],
+        [153, 229, 80],
+        [106, 190, 48],
+        [55, 148, 110],
+        [75, 105, 47],
+        [82, 75, 36],
+
+        [50, 60, 57],
+        [63, 63, 116],
+        [48, 96, 130],
+        [91, 110, 225],
+        [99, 155, 255],
+        [95, 205, 228],
+
+        [203, 219, 252],
         [255, 255, 255],
-        [200, 80, 80],
-        [80, 200, 80],
-        [80, 80, 200],
-        [180, 180, 80],
+        [155, 173, 183],
+        [132, 126, 135],
+
+        [105, 106, 106],
+        [89, 86, 82],
+        [118, 66, 138],
+        [172, 50, 50],
+        [217, 87, 99],
+        [215, 123, 186],
+        [143, 151, 74],
+        [138, 111, 48],
     ]
 
     const editor = createPixelEditor(palette)
@@ -19,10 +49,13 @@ export function pixelEditorScene(k) {
     const offsetX = Math.floor((k.width() - GRID * PIXEL_SIZE) / 2)
     const offsetY = Math.floor(k.height() * 0.20)
 
+    let lastPaintX = null
+    let lastPaintY = null
     let isDrawing = false
     let eraserMode = false
     let showGrid = true
     let selectedColorIndex = 1
+    let previousColorIndex = selectedColorIndex
 
     const gridVisual = []
     const paletteUI = []
@@ -53,7 +86,7 @@ export function pixelEditorScene(k) {
 
     function updateToolText() {
         if (eraserMode) {
-            toolText.text = "Tool: Eraser (X)"
+            toolText.text = "Tool: Eraser"
             activeColorPreview.color = k.rgb(60, 60, 60)
         } else {
             toolText.text = "Tool: Brush"
@@ -82,8 +115,8 @@ export function pixelEditorScene(k) {
         k.text(
             `PIXEL EDITOR
 
-Mouse      Paint / Drag
-X          Eraser
+Mouse(L)  Brush / Drag
+Mouse(R)  Eraser / Drag 
 C          Clear canvas
 G          Toggle grid
 E          Export JSON
@@ -103,16 +136,11 @@ E          Export JSON
         gridVisual[y] = []
         for (let x = 0; x < GRID; x++) {
 
-            const cell = k.add([
+            gridVisual[y][x] = k.add([
                 k.rect(PIXEL_SIZE - 1, PIXEL_SIZE - 1),
                 k.pos(offsetX + x * PIXEL_SIZE, offsetY + y * PIXEL_SIZE),
                 k.color(40, 40, 50),
-                k.area(),
             ])
-
-            cell.onClick(() => paint(x, y))
-
-            gridVisual[y][x] = cell
         }
     }
 
@@ -134,20 +162,26 @@ E          Export JSON
     // FAST DRAG PAINTING
     // ------------------------
 
-    k.onMousePress(() => {
+    let activeMouseButton = null
+
+    k.onMousePress((btn) => {
         isDrawing = true
-        handlePaintFromMouse()
+        activeMouseButton = btn
+        paintFromMouse()
     })
 
     k.onMouseRelease(() => {
         isDrawing = false
+        lastPaintX = null
+        lastPaintY = null
+        activeMouseButton = null
     })
 
     k.onMouseMove(() => {
-        if (isDrawing) handlePaintFromMouse()
+        if (isDrawing) paintFromMouse()
     })
 
-    function handlePaintFromMouse() {
+    function paintFromMouse() {
 
         const mouse = k.mousePos()
 
@@ -156,35 +190,97 @@ E          Export JSON
 
         if (x < 0 || y < 0 || x >= GRID || y >= GRID) return
 
-        paint(x, y)
+        if (lastPaintX === null) {
+            applyPaint(x, y)
+            lastPaintX = x
+            lastPaintY = y
+            return
+        }
+
+        drawLine(lastPaintX, lastPaintY, x, y)
+
+        lastPaintX = x
+        lastPaintY = y
+    }
+
+    function drawLine(x0, y0, x1, y1) {
+
+        const dx = Math.abs(x1 - x0)
+        const dy = Math.abs(y1 - y0)
+
+        const sx = x0 < x1 ? 1 : -1
+        const sy = y0 < y1 ? 1 : -1
+
+        let err = dx - dy
+
+        while (true) {
+
+            applyPaint(x0, y0)
+
+            if (x0 === x1 && y0 === y1) break
+
+            const e2 = 2 * err
+
+            if (e2 > -dy) {
+                err -= dy
+                x0 += sx
+            }
+
+            if (e2 < dx) {
+                err += dx
+                y0 += sy
+            }
+        }
+    }
+
+    function applyPaint(x, y) {
+
+        if (activeMouseButton === "right") {
+            editor.erase(x, y)
+        } else {
+            editor.draw(x, y)
+        }
+
+        updatePixel(x, y)
     }
 
     // ------------------------
     // PALETTE
     // ------------------------
 
-    const paletteOffsetY = offsetY - PIXEL_SIZE * 3
+    const paletteColumns = 8
+    const paletteSpacing = PIXEL_SIZE * 1.6
+    const paletteRows = Math.ceil(palette.length / paletteColumns)
+    const paletteHeight = paletteRows * paletteSpacing
+    const paletteOffsetY = offsetY - paletteHeight - 20
 
     palette.forEach((col, i) => {
 
+        const row = Math.floor(i / paletteColumns)
+        const colIndex = i % paletteColumns
+
+        const px = offsetX + colIndex * paletteSpacing
+        const py = paletteOffsetY + row * paletteSpacing
+
         const border = k.add([
             k.rect(PIXEL_SIZE * 1.5, PIXEL_SIZE * 1.5),
-            k.pos(offsetX + i * (PIXEL_SIZE * 1.8) - 5, paletteOffsetY - 5),
+            k.pos(px - 5, py - 5),
             k.color(255, 255, 0),
             k.opacity(0),
         ])
 
         const swatch = k.add([
             k.rect(PIXEL_SIZE * 1.2, PIXEL_SIZE * 1.2),
-            k.pos(offsetX + i * (PIXEL_SIZE * 1.8), paletteOffsetY),
+            k.pos(px, py),
             k.color(...col),
             k.area(),
         ])
 
         swatch.onClick(() => {
-            editor.setColor(i)
+            previousColorIndex = i
             selectedColorIndex = i
             eraserMode = false
+            editor.setColor(i)
             updatePaletteHighlight()
             updateToolText()
         })
@@ -210,12 +306,6 @@ E          Export JSON
     // CONTROLS
     // ------------------------
 
-    k.onKeyPress("x", () => {
-        eraserMode = true
-        updateToolText()
-        updatePaletteHighlight()
-    })
-
     k.onKeyPress("c", () => {
         editor.clear()
         for (let y = 0; y < GRID; y++)
@@ -225,12 +315,11 @@ E          Export JSON
 
     k.onKeyPress("g", () => {
         showGrid = !showGrid
-        for (let y = 0; y < GRID; y++) {
+        for (let y = 0; y < GRID; y++)
             for (let x = 0; x < GRID; x++) {
                 gridVisual[y][x].width = PIXEL_SIZE - (showGrid ? 1 : 0)
                 gridVisual[y][x].height = PIXEL_SIZE - (showGrid ? 1 : 0)
             }
-        }
     })
 
     k.onKeyPress("e", () => {
