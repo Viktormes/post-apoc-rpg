@@ -146,7 +146,7 @@ k.scene("overworld", () => {
 
     // --- UI ---
     k.add([
-        k.text("A/D move · Space jump · 9 editor", {
+        k.text("A/D move · Space jump · 9 editor · 0 pixel editor", {
             size: 14,
             styles: false,
         }),
@@ -156,5 +156,9 @@ k.scene("overworld", () => {
 
     k.onKeyPress("9", () => {
         k.go("editor")
+    })
+
+    k.onKeyPress("0", () => {
+        k.go("pixelEditor")
     })
 })
