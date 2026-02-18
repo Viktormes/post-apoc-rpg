@@ -1,3 +1,5 @@
+import { renderPixelSprite } from "../pixel/renderPixelSprite.js"
+import ghoulSprite from "../sprites/ghoul.json"
 export function createEnemyTemplate({
                                         id,
                                         name,
@@ -8,6 +10,7 @@ export function createEnemyTemplate({
                                         width = 24,
                                         height = 24,
                                         color = [200, 50, 50],
+                                        sprite = null
                                     }) {
     return {
         id,
@@ -21,6 +24,7 @@ export function createEnemyTemplate({
         width,
         height,
         color,
+        sprite,
     }
 }
 
@@ -31,10 +35,11 @@ export const enemyTypes = {
         maxHP: 18,
         damageMin: 3,
         damageMax: 6,
-        shape: "rect",
-        width: 24,
-        height: 24,
-        color: [160, 200, 160],
+
+        sprite: ghoulSprite,  // 👈 add this
+
+        width: ghoulSprite.width,
+        height: ghoulSprite.height,
     }),
 
     orc: createEnemyTemplate({
@@ -69,25 +74,53 @@ export function pickRandomEnemy() {
 
 export function spawnOverworldEnemy(k, template, x, y, onBattle) {
 
-    let visual
+    let enemy
 
-    if (template.shape === "rect") {
-        visual = k.rect(template.width, template.height)
-    } else if (template.shape === "circle") {
-        visual = k.circle(template.width / 2)
-    }
+    if (template.sprite) {
 
-    const enemy = k.add([
-        visual,
-        k.pos(x, y),
-        k.area(),
-        k.body(),
-        k.color(...template.color),
-        "overworldEnemy",
-        {
-            template, // store battle data
+        const spriteScale = 2   // try 2 first
+
+        const sprite = renderPixelSprite(
+            k,
+            template.sprite,
+            spriteScale
+        )
+
+        enemy = k.add([
+            k.rect(sprite.width, sprite.height),  // collision base
+            k.pos(x, y),
+            k.opacity(0),                         // hide base
+            k.area(),
+            k.body(),
+            "overworldEnemy",
+            { template }
+        ])
+
+        // Add pixel children
+        sprite.components.forEach(comp => {
+            enemy.add(comp)
+        })
+
+    } else {
+
+        let visual
+
+        if (template.shape === "rect") {
+            visual = k.rect(template.width, template.height)
+        } else if (template.shape === "circle") {
+            visual = k.circle(template.width / 2)
         }
-    ])
+
+        enemy = k.add([
+            visual,
+            k.pos(x, y),
+            k.area(),
+            k.body(),
+            k.color(...template.color),
+            "overworldEnemy",
+            { template }
+        ])
+    }
 
     enemy.onCollide("player", () => {
         enemy.area.isActive = false

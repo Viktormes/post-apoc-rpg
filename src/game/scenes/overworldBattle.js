@@ -1,6 +1,9 @@
 import { gameState } from "../core/state.js"
 import { createTypewriter, createScreenFlash } from "../ui/textFx.js"
 import { pickRandomEnemy } from "../entities/enemy.js"
+import { renderPixelSprite } from "../pixel/renderPixelSprite.js"
+import playerSprite from "../sprites/player.json"
+
 
 export function createOverworldBattle(k) {
     let inBattle = false
@@ -163,8 +166,6 @@ export function createOverworldBattle(k) {
 
     // Small helpers to update rect geometry safely
     function setRectGeom(obj, w, h, x, y) {
-        // kaboom/kaplay entities typically expose width/height on rect() shapes
-        // if your version differs, the pos updates still work, and sizes will be "good enough".
         if (typeof obj.width === "number") obj.width = w
         if (typeof obj.height === "number") obj.height = h
         obj.pos.x = x
@@ -176,10 +177,20 @@ export function createOverworldBattle(k) {
     // =====================================================
 
     function startBattleOverlay(enemyTemplate, overworldEnemyEntity, overworldPlayer) {
+
         if (inBattle) return
         inBattle = true
 
-        overworldPlayer.opacity = 0
+        const BATTLE_SCALE = 1.25
+        const sx = (v) => v * BATTLE_SCALE
+        const sy = (v) => v * BATTLE_SCALE
+
+        const previousScale = k.camScale()
+        k.setCamScale(1.3)
+
+        overworldPlayer.children.forEach(child => {
+            child.opacity = 0
+        })
         if (overworldEnemyEntity) overworldEnemyEntity.opacity = 0
 
         const enemy = enemyTemplate ?? pickRandomEnemy()
@@ -380,23 +391,84 @@ export function createOverworldBattle(k) {
         }
 
         // Battle actors (we’ll place in layout())
-        const battlePlayer = addUI([
-            k.rect(overworldPlayer.width, overworldPlayer.height),
-            k.pos(0, 0),
-            k.color(overworldPlayer.color.r, overworldPlayer.color.g, overworldPlayer.color.b),
-            k.opacity(1),
-            k.fixed(),
-            k.z(99995),
-        ])
+        let battlePlayer
 
-        const battleEnemy = addUI([
-            k.rect(enemyTemplate.width, enemyTemplate.height),
-            k.pos(0, 0),
-            k.color(...enemyTemplate.color),
-            k.opacity(1),
-            k.fixed(),
-            k.z(905),
-        ])
+        if (playerSprite) {
+
+            const spriteScale = 2 * BATTLE_SCALE
+
+            const sprite = renderPixelSprite(
+                k,
+                playerSprite,
+                spriteScale
+            )
+
+            battlePlayer = addUI([
+                k.rect(sprite.width, sprite.height),
+                k.pos(W() * 0.25, H() * 0.55),
+                k.opacity(0),
+                k.area(),
+                k.body(),
+                k.fixed(),
+                k.z(99995),
+            ])
+
+
+            sprite.components.forEach(comp => {
+                battlePlayer.add(comp)
+            })
+
+        } else {
+
+            battlePlayer = addUI([
+                k.rect(overworldPlayer.width, overworldPlayer.height),
+                k.pos(W() * 0.25, H() * 0.55),
+                k.color(
+                    overworldPlayer.color.r,
+                    overworldPlayer.color.g,
+                    overworldPlayer.color.b
+                ),
+                k.opacity(1),
+                k.fixed(),
+                k.z(99995),
+            ])
+        }
+
+        let battleEnemy
+
+        if (enemyTemplate.sprite) {
+
+            const spriteScale =  2 * BATTLE_SCALE
+
+            const sprite = renderPixelSprite(
+                k,
+                enemyTemplate.sprite,
+                spriteScale
+            )
+
+            battleEnemy = addUI([
+                k.rect(sprite.width, sprite.height),
+                k.pos(W() * 0.7, H() * 0.55),
+                k.opacity(0),
+                k.fixed(),
+                k.z(905),
+            ])
+
+            sprite.components.forEach(comp => {
+                battleEnemy.add(comp)
+            })
+
+        } else {
+
+            battleEnemy = addUI([
+                k.rect(enemyTemplate.width, enemyTemplate.height),
+                k.pos(W() * 0.7, H() * 0.55),
+                k.color(...enemyTemplate.color),
+                k.opacity(1),
+                k.fixed(),
+                k.z(905),
+            ])
+        }
 
         // =====================================================
         // Responsive layout (runs while in battle)
@@ -557,16 +629,42 @@ export function createOverworldBattle(k) {
                     battlePlayer.pos.y = baseY
                 })
 
+
                 k.wait(0.1, () => {
                     const dmg = k.randi(gameState.playerWeapon.damageMin, gameState.playerWeapon.damageMax)
                     enemyHP = Math.max(0, enemyHP - dmg)
 
-                    const originalColor = battleEnemy.color.clone()
-                    battleEnemy.color = k.rgb(255, 60, 60)
-                    k.wait(0.08, () => (battleEnemy.color = originalColor))
+                    if (enemyTemplate.sprite) {
+
+                        const originalColors = []
+
+                        battleEnemy.children.forEach(child => {
+                            if (child.color) {
+                                originalColors.push(child.color.clone())
+                                child.color = k.rgb(255, 60, 60)
+                            }
+                        })
+
+                        k.wait(0.08, () => {
+                            let i = 0
+                            battleEnemy.children.forEach(child => {
+                                if (child.color) {
+                                    child.color = originalColors[i++]
+                                }
+                            })
+                        })
+
+                    } else {
+
+                        const originalColor = battleEnemy.color.clone()
+                        battleEnemy.color = k.rgb(255, 60, 60)
+                        k.wait(0.08, () => battleEnemy.color = originalColor)
+
+                    }
 
                     k.shake(10)
                     spawnAttackParticles(battleEnemy.pos.x, battleEnemy.pos.y)
+                    applyKnockback(battleEnemy, 20, 1.2)
 
                     updateStats()
                     screenFlash()
@@ -657,12 +755,20 @@ export function createOverworldBattle(k) {
                 return
             }
 
-            const healAmount = 8
+            if (gameState.energy < 2) {
+                typeMessage("Not enough energy. (Needs 2)")
+                return
+            }
+
+
+
+            const healAmount = k.randi(4, 8)
             gameState.playerHP = Math.min(gameState.maxHP, gameState.playerHP + healAmount)
 
             const msg = `You use mend to restore ${healAmount} HP.`
             typeMessage(msg, { speed: 0.03 })
 
+            gameState.energy -= 2
             updateStats()
             turn = "enemy"
             awaitingEnemy = true
@@ -1017,9 +1123,35 @@ export function createOverworldBattle(k) {
             k.tween(startX, targetX, 0.1, (v) => { battleEnemy.pos.x = v })
 
             k.wait(0.1, () => {
-                const originalColor = battlePlayer.color.clone()
-                battlePlayer.color = k.rgb(255, 60, 60)
-                k.wait(0.1, () => { battlePlayer.color = originalColor })
+                if (playerSprite) {
+
+                    const originalColors = []
+
+                    battlePlayer.children.forEach(child => {
+                        if (child.color && typeof child.color.clone === "function") {
+                            originalColors.push({
+                                child,
+                                color: child.color.clone()
+                            })
+                            child.color = k.rgb(255, 60, 60)
+                        }
+                    })
+
+                    k.wait(0.1, () => {
+                        originalColors.forEach(entry => {
+                            entry.child.color = entry.color
+                        })
+                    })
+
+                } else {
+
+                    const originalColor = battlePlayer.color.clone()
+                    battlePlayer.color = k.rgb(255, 60, 60)
+                    k.wait(0.1, () => {
+                        battlePlayer.color = originalColor
+                    })
+
+                }
 
                 k.shake(10)
                 spawnAttackParticles(battlePlayer.pos.x, battlePlayer.pos.y)
@@ -1051,8 +1183,8 @@ export function createOverworldBattle(k) {
             gainEnergy(2)
             typeMessage(`The ${enemy.name} collapses into the dust.`)
 
-            k.tween(1, 0, 2, (v) => {
-                battleEnemy.opacity = v
+            k.tween(1, 0, 1, (v) => {
+
                 battleEnemy.scale = k.vec2(v, v)
             })
 
@@ -1071,12 +1203,16 @@ export function createOverworldBattle(k) {
             battlePlayer.destroy()
             battleEnemy.destroy()
 
-            overworldPlayer.opacity = 1
+
+            overworldPlayer.children.forEach(child => {
+                child.opacity = 1
+            })
             if (overworldEnemyEntity && overworldEnemyEntity.exists()) {
                 overworldEnemyEntity.opacity = 1
             }
 
             inBattle = false
+            k.setCamScale(previousScale)
             layoutHandle.cancel?.()
             layoutButtonsHandle.cancel?.()
             clearBattleUI()

@@ -52,6 +52,8 @@ k.scene("overworld", () => {
     // --- Camera Anchor ---
     const cameraAnchor = k.add([k.pos(0, 0)])
 
+    k.setCamScale(1.4)
+
     // --- Load Level ---
     const levelData = window.__LEVEL_DATA__ ?? level1
     window.__LEVEL_DATA__ = null

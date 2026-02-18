@@ -27,5 +27,5 @@ export function loadLevel(k, data) {
         ])
     }
 
-    return { spawnPoint, enemySpawns }
+    return { spawn: spawnPoint, enemySpawns }
 }

@@ -48,6 +48,11 @@ export function pixelEditorScene(k) {
 
     const offsetX = Math.floor((k.width() - GRID * PIXEL_SIZE) / 2)
     const offsetY = Math.floor(k.height() * 0.20)
+    const undoStack = []
+    const redoStack = []
+
+    let currentStroke = null
+
 
     let lastPaintX = null
     let lastPaintY = null
@@ -167,6 +172,7 @@ E          Export JSON
     k.onMousePress((btn) => {
         isDrawing = true
         activeMouseButton = btn
+        currentStroke = []
         paintFromMouse()
     })
 
@@ -175,6 +181,13 @@ E          Export JSON
         lastPaintX = null
         lastPaintY = null
         activeMouseButton = null
+
+        if (currentStroke && currentStroke.length > 0) {
+            undoStack.push(currentStroke)
+            redoStack.length = 0
+        }
+
+        currentStroke = null
     })
 
     k.onMouseMove(() => {
@@ -235,13 +248,55 @@ E          Export JSON
 
     function applyPaint(x, y) {
 
+        const previous = editor.pixels[y][x]
+
         if (activeMouseButton === "right") {
             editor.erase(x, y)
         } else {
             editor.draw(x, y)
         }
 
+        const current = editor.pixels[y][x]
+
+        if (previous !== current && currentStroke) {
+
+            currentStroke.push({
+                x,
+                y,
+                previous,
+                current
+            })
+        }
+
         updatePixel(x, y)
+    }
+
+    function undo() {
+
+        if (undoStack.length === 0) return
+
+        const stroke = undoStack.pop()
+
+        for (const action of stroke) {
+            editor.pixels[action.y][action.x] = action.previous
+            updatePixel(action.x, action.y)
+        }
+
+        redoStack.push(stroke)
+    }
+
+    function redo() {
+
+        if (redoStack.length === 0) return
+
+        const stroke = redoStack.pop()
+
+        for (const action of stroke) {
+            editor.pixels[action.y][action.x] = action.current
+            updatePixel(action.x, action.y)
+        }
+
+        undoStack.push(stroke)
     }
 
     // ------------------------
@@ -322,22 +377,42 @@ E          Export JSON
             }
     })
 
-    k.onKeyPress("e", () => {
+    k.onKeyPress("z", () => {
+        if (k.isKeyDown("control")) undo()
+    })
 
-        const blob = new Blob(
-            [editor.serialize()],
-            { type: "application/json" }
-        )
+    k.onKeyPress("y", () => {
+        if (k.isKeyDown("control")) redo()
+    })
 
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = "sprite_24x24.json"
-        a.click()
-        URL.revokeObjectURL(url)
+    k.onKeyPress("e", async () => {
+
+        try {
+
+            const fileHandle = await window["showSaveFilePicker"]({
+                suggestedName: "sprite_24x24.json",
+                types: [{
+                    description: "JSON Files",
+                    accept: { "application/json": [".json"] }
+                }]
+            })
+
+            const writable = await fileHandle.createWritable()
+            await writable.write(editor.serialize())
+            await writable.close()
+
+            showExportMessage("Saved!")
+
+        } catch (err) {
+            // User cancelled or browser unsupported
+            console.log("Save cancelled or not supported.")
+        }
+    })
+
+    function showExportMessage(text) {
 
         const msg = k.add([
-            k.text("Exported!", { size: 22 }),
+            k.text(text, { size: 22 }),
             k.pos(k.width() / 2, 50),
             k.anchor("center"),
             k.color(0, 255, 120),
@@ -346,7 +421,8 @@ E          Export JSON
 
         k.tween(1, 0, 1.5, v => msg.opacity = v)
         k.wait(1.5, () => msg.destroy())
-    })
+    }
+
 
     k.onKeyPress("8", () => k.go("overworld"))
 }

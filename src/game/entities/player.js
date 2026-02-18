@@ -1,21 +1,59 @@
 import {gameState} from "../core/state.js";
+import { renderPixelSprite } from "../pixel/renderPixelSprite.js"
+import playerSprite from "../sprites/player.json"
+
 
 export function createPlayer(k, { x = 80, y = 200 } = {}) {
-    const player = k.add([
-        k.rect(24, 28),
-        k.pos(x, y),
-        k.area(),
-        k.body({
-            jumpForce: 520,
-        }),
-        k.color(100, 220, 160),
-        "player",
-    ])
+
+    const spriteScale = 2
+
+    let width = 24
+    let height = 28
+
+    let player
+
+    if (playerSprite) {
+
+        const sprite = renderPixelSprite(
+            k,
+            playerSprite,
+            spriteScale
+        )
+
+        width = sprite.width
+        height = sprite.height
+
+        player = k.add([
+            k.rect(width, height),
+            k.pos(x, y),
+            k.color(0, 0, 0),
+            k.opacity(0),
+            k.area(),
+            k.body({ jumpForce: 650 }),
+            "player",
+        ])
+
+        sprite.components.forEach(comp => {
+            player.add(comp)
+        })
+
+    } else {
+
+        player = k.add([
+            k.rect(width, height),
+            k.pos(x, y),
+            k.opacity(0),
+            k.area(),
+            k.body({ jumpForce: 650 }),
+            "player",
+        ])
+    }
 
     player.weapon = gameState.playerWeapon
 
     return player
 }
+
 
 export function attachPlayerJumpControls(k, player, opts = {}) {
     const {
@@ -37,42 +75,13 @@ export function attachPlayerJumpControls(k, player, opts = {}) {
     })
 }
 
-// ... existing code ...
-
-export function spawnPlayerTrail(k, entity, {
-    lifetime = 0.25,
-    opacity = 0.6,
-} = {}) {
-
-    const trail = k.add([
-        k.rect(entity.width, entity.height),
-        k.pos(entity.pos.x, entity.pos.y),
-        k.color(100, 220, 160),
-        k.opacity(opacity),
-        k.z(entity.z ? entity.z - 1 : 0),
-        k.fixed?.() ?? undefined,
-    ])
-
-    k.tween(trail.opacity, 0, lifetime, (v) => {
-        trail.opacity = v
-    })
-
-    k.wait(lifetime, () => {
-        trail.destroy()
-    })
-}
-
 export function attachPlayerMovement(k, player, opts = {}) {
     const {
         baseSpeed = 180,
-        boostMultiplier = 1.35,
+        boostMultiplier = 2,
         boostTime = 0.25,
         landingBounce = 120,
         landingBounceCooldown = 0.2,
-        trailInterval = 0.04,
-        trailLifetime = 0.25,
-        landingPuffRadius = 10,
-        landingPuffLifetime = 0.2,
         inputEnabled = () => true,
     } = opts
 
@@ -85,6 +94,7 @@ export function attachPlayerMovement(k, player, opts = {}) {
     k.onUpdate(() => {
         const grounded = player.isGrounded()
         const justLanded = grounded && !wasGrounded
+        const playerEffectColor = [100, 220, 160]
 
         bounceCooldown = Math.max(0, bounceCooldown - k.dt())
 
@@ -96,24 +106,6 @@ export function attachPlayerMovement(k, player, opts = {}) {
                 player.vel.y = -landingBounce
                 bounceCooldown = landingBounceCooldown
 
-                const puff = k.add([
-                    k.circle(landingPuffRadius),
-                    k.pos(player.pos.x + 12, player.pos.y + 30),
-                    k.color(player.color),
-                    k.opacity(0.6),
-                    k.scale(1),
-                    k.z(player.z ? player.z - 1 : 0),
-                ])
-
-                k.tween(1, 1.8, landingPuffLifetime, (v) => {
-                    puff.scale = k.vec2(v, v * 0.5)
-                })
-                k.tween(puff.opacity, 0, landingPuffLifetime, (v) => {
-                    puff.opacity = v
-                })
-                k.wait(landingPuffLifetime, () => {
-                    puff.destroy()
-                })
             }
         }
 
@@ -121,28 +113,6 @@ export function attachPlayerMovement(k, player, opts = {}) {
         wasGrounded = grounded
         prevVelY = player.vel ? player.vel.y : 0
 
-        // --- Trail effect while boosting ---
-        if (boostTimer > 0) {
-            trailTimer -= k.dt()
-            if (trailTimer <= 0) {
-                trailTimer = trailInterval
-                const trail = k.add([
-                    k.rect(24, 28),
-                    k.pos(player.pos.x, player.pos.y),
-                    k.color(player.color),
-                    k.opacity(0.6),
-                    k.z(player.z ? player.z - 1 : 0),
-                ])
-                k.tween(trail.opacity, 0, trailLifetime, (v) => {
-                    trail.opacity = v
-                })
-                k.wait(trailLifetime, () => {
-                    trail.destroy()
-                })
-            }
-        } else {
-            trailTimer = 0
-        }
     })
 
     k.onKeyDown("a", () => {
