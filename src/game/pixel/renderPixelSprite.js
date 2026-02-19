@@ -1,20 +1,31 @@
 export function renderPixelSprite(k, spriteData, pixelSize = 1) {
 
     const components = []
+    const { palette, width, height } = spriteData
 
-    const { pixels, palette, width, height } = spriteData
+    const framePixels =
+        spriteData.frames && spriteData.frames.length > 0
+            ? spriteData.frames[0].pixels
+            : spriteData.pixels
 
     for (let py = 0; py < height; py++) {
         for (let px = 0; px < width; px++) {
 
-            const colorIndex = pixels[py][px]
-            if (colorIndex === null) continue
+            const colorIndex = framePixels[py][px]
 
-            components.push([
+            const comp = [
                 k.rect(pixelSize, pixelSize),
                 k.pos(px * pixelSize, py * pixelSize),
-                k.color(...palette[colorIndex]),
-            ])
+                k.opacity(colorIndex === null ? 0 : 1),
+            ]
+
+            if (colorIndex !== null) {
+                comp.push(k.color(...palette[colorIndex]))
+            } else {
+                comp.push(k.color(0,0,0))
+            }
+
+            components.push(comp)
         }
     }
 

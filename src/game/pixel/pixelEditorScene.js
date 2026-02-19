@@ -1,4 +1,5 @@
 import {createPixelEditor} from "./pixelEditorCore.js"
+import {renderPixelSprite} from "./renderPixelSprite.js";
 
 export function pixelEditorScene(k) {
 
@@ -43,6 +44,8 @@ export function pixelEditorScene(k) {
 
     const editor = createPixelEditor(palette)
 
+
+
     const GRID = editor.WIDTH
     const PIXEL_SIZE = Math.floor(k.height() * 0.025)
 
@@ -61,6 +64,12 @@ export function pixelEditorScene(k) {
     let showGrid = true
     let selectedColorIndex = 1
     let previousColorIndex = selectedColorIndex
+    let previewEntity = null
+    const previewScale = 2
+
+    const previewPanelX = k.width() - 260
+    const previewPanelY = 60
+    const previewPanelSize = 200
 
     const gridVisual = []
     const paletteUI = []
@@ -71,6 +80,8 @@ export function pixelEditorScene(k) {
         k.pos(0, 0),
         k.color(20, 25, 35),
     ])
+
+    renderPreview()
 
     // ------------------------
     // TOOL HEADER
@@ -125,12 +136,49 @@ Mouse(R)  Eraser / Drag
 C          Clear canvas
 G          Toggle grid
 E          Export JSON
+L          Load JSON
 8          Back to game`,
             { size: 14, width: panelWidth - 20 }
         ),
         k.pos(30, 130),
         k.fixed(),
         k.z(1001),
+    ])
+
+
+
+
+    // ------------------------
+// PREVIEW PANEL (Framed)
+// ------------------------
+
+    const previewSize = 200
+
+// Background
+    k.add([
+        k.rect(previewSize, previewSize),
+        k.pos(previewPanelX, previewPanelY),
+        k.color(25, 30, 45),
+        k.opacity(0.95),
+        k.fixed(),
+        k.z(1000),
+    ])
+
+// Outer frame (single rectangle border)
+    k.add([
+        k.rect(previewSize + 6, previewSize + 6),
+        k.pos(previewPanelX - 3, previewPanelY - 3),
+        k.color(120, 170, 255),
+        k.opacity(0.3),
+        k.fixed(),
+        k.z(999),
+    ])
+
+// Title
+    k.add([
+        k.text("PREVIEW", { size: 16 }),
+        k.pos(previewPanelX + 10, previewPanelY - 26),
+        k.fixed(),
     ])
 
     // ------------------------
@@ -149,14 +197,8 @@ E          Export JSON
         }
     }
 
-    function paint(x, y) {
-        if (eraserMode) editor.erase(x, y)
-        else editor.draw(x, y)
-        updatePixel(x, y)
-    }
-
     function updatePixel(x, y) {
-        const value = editor.pixels[y][x]
+        const value = editor.getPixels()[y][x]
         gridVisual[y][x].color =
             value === null
                 ? k.rgb(40, 40, 50)
@@ -214,6 +256,8 @@ E          Export JSON
 
         lastPaintX = x
         lastPaintY = y
+
+        renderPreview()
     }
 
     function drawLine(x0, y0, x1, y1) {
@@ -248,7 +292,7 @@ E          Export JSON
 
     function applyPaint(x, y) {
 
-        const previous = editor.pixels[y][x]
+        const previous = editor.getPixels()[y][x]
 
         if (activeMouseButton === "right") {
             editor.erase(x, y)
@@ -256,7 +300,7 @@ E          Export JSON
             editor.draw(x, y)
         }
 
-        const current = editor.pixels[y][x]
+        const current = editor.getPixels()[y][x]
 
         if (previous !== current && currentStroke) {
 
@@ -269,6 +313,17 @@ E          Export JSON
         }
 
         updatePixel(x, y)
+    }
+
+    const frameText = k.add([
+        k.text("Frame: 1", { size: 16 }),
+        k.pos(20, 90),
+        k.fixed(),
+        k.z(1001),
+    ])
+
+    function updateFrameUI() {
+        frameText.text = `Frame: ${editor.currentFrame + 1} / ${editor.frames.length}`
     }
 
     function undo() {
@@ -356,7 +411,7 @@ E          Export JSON
     }
 
     updatePaletteHighlight()
-
+    updateFrameUI()
     // ------------------------
     // CONTROLS
     // ------------------------
@@ -408,6 +463,109 @@ E          Export JSON
             console.log("Save cancelled or not supported.")
         }
     })
+
+    k.onKeyPress("l", async () => {
+
+        try {
+
+            if ("showOpenFilePicker" in window) {
+
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: "JSON Files",
+                        accept: { "application/json": [".json"] }
+                    }],
+                    multiple: false
+                })
+
+                const file = await fileHandle.getFile()
+                const text = await file.text()
+
+                editor.load(text)
+                refreshGrid()
+                renderPreview()
+
+                showExportMessage("Loaded!")
+
+            } else {
+                alert("Open file not supported in this browser.")
+            }
+
+        } catch (err) {
+            console.log("Load cancelled.")
+        }
+    })
+
+    k.onKeyPress("n", () => {
+        editor.addFrame()
+        refreshGrid()
+        updateFrameUI()
+        renderPreview()
+    })
+
+    k.onKeyPress("tab", () => {
+        editor.nextFrame()
+        refreshGrid()
+        updateFrameUI()
+        renderPreview()
+    })
+
+    k.onKeyPress("q", () => {
+        editor.previousFrame()
+        refreshGrid()
+        updateFrameUI()
+        renderPreview()
+    })
+
+    k.onKeyPress("d", () => {
+        editor.duplicateFrame()
+        refreshGrid()
+        updateFrameUI()
+        renderPreview()
+    })
+
+    function refreshGrid() {
+        for (let y = 0; y < GRID; y++) {
+            for (let x = 0; x < GRID; x++) {
+                updatePixel(x, y)
+            }
+        }
+    }
+
+    function renderPreview() {
+
+        if (previewEntity) {
+            previewEntity.destroy()
+            previewEntity = null
+        }
+
+        const spriteData = {
+            width: editor.WIDTH,
+            height: editor.HEIGHT,
+            palette: editor.palette,
+            frames: editor.frames
+        }
+
+        const sprite = renderPixelSprite(
+            k,
+            spriteData,
+            previewScale
+        )
+
+        // Calculate centered position
+        const centerX = previewPanelX + (previewPanelSize - sprite.width) / 2
+        const centerY = previewPanelY + (previewPanelSize - sprite.height) / 2
+
+        previewEntity = k.add([
+            k.pos(centerX, centerY),
+            k.fixed(),
+            k.z(1001),
+        ])
+
+        sprite.components.forEach(comp => {
+            previewEntity.add(comp)
+        })
+    }
 
     function showExportMessage(text) {
 

@@ -1,9 +1,7 @@
 import k from "../core/kaplay.js"
 import { attachPlayerJumpControls, attachPlayerMovement, createPlayer } from "../entities/player.js"
-import { createOverworldBattle } from "./overworldBattle.js"
 import { loadLevel } from "../level/loadLevel.js"
 import { gameState } from "../core/state.js"
-import { blockTypes } from "../level/blockTypes.js"
 
 import level1 from "../levels/level1.json"
 import { enemyTypes, spawnOverworldEnemy } from "../entities/enemy.js"
@@ -66,11 +64,11 @@ k.scene("overworld", () => {
 
     // --- Player ---
     const player = createPlayer(k, spawnPos.clone())
-    const battle = createOverworldBattle(k)
+    player.opacity = 0
 
     attachPlayerJumpControls(k, player, {
         jumpCutMultiplier: 0.5,
-        inputEnabled: () => !battle.isInBattle(),
+        inputEnabled: () => true,
     })
 
     attachPlayerMovement(k, player, {
@@ -78,7 +76,7 @@ k.scene("overworld", () => {
         boostMultiplier: 1.35,
         boostTime: 0.25,
         landingBounce: 120,
-        inputEnabled: () => !battle.isInBattle(),
+        inputEnabled: () => true,
     })
 
     enemySpawns.forEach(spawnData => {
@@ -87,9 +85,6 @@ k.scene("overworld", () => {
             enemyTypes[spawnData.enemyId],
             spawnData.x,
             spawnData.y,
-            (enemyTemplate, enemyEntity) => {
-                battle.startBattleOverlay(enemyTemplate, enemyEntity, player)
-            }
         )
     })
 
