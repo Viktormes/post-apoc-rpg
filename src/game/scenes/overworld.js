@@ -10,18 +10,24 @@ k.scene("overworld", () => {
 
     const screenW = k.width()
     const screenH = k.height()
-    const sectionHeight = screenH / 3
+    const sectionHeight = screenH / 5
 
-    // --- Sky ---
+    // --------------------------------------------------
+    // SKY BASE
+    // --------------------------------------------------
+
     k.add([
         k.rect(screenW, screenH),
         k.pos(0, 0),
-        k.color(120, 180, 255),
+        k.color(255, 200, 120),
         k.fixed(),
-        k.z(-100),
+        k.z(-200),
     ])
 
-    // --- Infinite Parallax Layer Factory ---
+    // --------------------------------------------------
+    // PARALLAX LAYER FACTORY
+    // --------------------------------------------------
+
     function createParallaxLayer(color, y, z) {
 
         const layer1 = k.add([
@@ -43,16 +49,23 @@ k.scene("overworld", () => {
         return { layer1, layer2 }
     }
 
-    const far = createParallaxLayer([90, 130, 170], 0, -90)
-    const mid = createParallaxLayer([110, 150, 190], sectionHeight, -80)
-    const near = createParallaxLayer([130, 170, 200], sectionHeight * 2, -70)
+    // --------------------------------------------------
+    // 5 ORANGE/YELLOW LAYERS
+    // --------------------------------------------------
 
-    // --- Camera Anchor ---
+    const layer1 = createParallaxLayer([180, 60, 20], 0, -100)
+    const layer2 = createParallaxLayer([210, 90, 30], sectionHeight, -90)
+    const layer3 = createParallaxLayer([230, 120, 40], sectionHeight * 2, -80)
+    const layer4 = createParallaxLayer([250, 150, 60], sectionHeight * 3, -70)
+    const layer5 = createParallaxLayer([255, 180, 90], sectionHeight * 4, -60)
+
+    // --------------------------------------------------
+    // CAMERA
+    // --------------------------------------------------
+
     const cameraAnchor = k.add([k.pos(0, 0)])
-
     k.setCamScale(1.4)
 
-    // --- Load Level ---
     const levelData = window.__LEVEL_DATA__ ?? level1
     window.__LEVEL_DATA__ = null
 
@@ -62,7 +75,6 @@ k.scene("overworld", () => {
         ? k.vec2(spawn.x, spawn.y)
         : k.vec2(80, 200)
 
-    // --- Player ---
     const player = createPlayer(k, spawnPos.clone())
     player.opacity = 0
 
@@ -88,7 +100,10 @@ k.scene("overworld", () => {
         )
     })
 
-    // --- Infinite Parallax Update ---
+    // --------------------------------------------------
+    // PARALLAX UPDATE
+    // --------------------------------------------------
+
     function updateLayer(layerObj, speed) {
 
         const camX = cameraAnchor.pos.x
@@ -106,7 +121,6 @@ k.scene("overworld", () => {
         }
     }
 
-    // --- Follow + Respawn Logic ---
     k.onUpdate(() => {
 
         const maxCameraY = screenH * 0.5
@@ -116,12 +130,12 @@ k.scene("overworld", () => {
 
         k.setCamPos(cameraAnchor.pos)
 
-        // Parallax
-        updateLayer(far, 0.1)
-        updateLayer(mid, 0.2)
-        updateLayer(near, 0.35)
+        updateLayer(layer1, 0.05)
+        updateLayer(layer2, 0.1)
+        updateLayer(layer3, 0.2)
+        updateLayer(layer4, 0.35)
+        updateLayer(layer5, 0.5)
 
-        // --- Fall / Respawn ---
         const fallY = screenH + 20
         const fallDamage = 5
 
@@ -141,7 +155,10 @@ k.scene("overworld", () => {
         }
     })
 
-    // --- UI ---
+    // --------------------------------------------------
+    // UI + EDITOR KEYS (RESTORED)
+    // --------------------------------------------------
+
     k.add([
         k.text("A/D move · Space jump · 9 editor · 0 pixel editor", {
             size: 14,
@@ -151,6 +168,62 @@ k.scene("overworld", () => {
         k.fixed(),
     ])
 
+
+    const hpBarWidth = 180
+    const hpBarHeight = 16
+
+// Frame / background
+    k.add([
+        k.rect(hpBarWidth + 4, hpBarHeight + 4),
+        k.pos(18, 44), // slightly below text
+        k.color(0, 0, 0),
+        k.fixed(),
+        k.z(1000),
+    ])
+
+// Inner background
+    k.add([
+        k.rect(hpBarWidth, hpBarHeight),
+        k.pos(20, 46),
+        k.color(60, 30, 30),
+        k.fixed(),
+        k.z(1001),
+    ])
+
+// HP fill
+    const hpFill = k.add([
+        k.rect(hpBarWidth, hpBarHeight),
+        k.pos(20, 46),
+        k.color(220, 40, 40),
+        k.fixed(),
+        k.z(1002),
+    ])
+
+// Optional numeric text
+    const hpText = k.add([
+        k.text("", { size: 12 }),
+        k.pos(24, 48),
+        k.fixed(),
+        k.z(1003),
+    ])
+
+// Update HP bar
+    k.onUpdate(() => {
+
+        const ratio = Math.max(0, gameState.playerHP) / gameState.maxHP
+
+        hpFill.width = hpBarWidth * ratio
+
+        hpText.text = `${Math.ceil(gameState.playerHP)} / ${gameState.maxHP}`
+
+        if (ratio > 0.6) {
+            hpFill.color = k.rgb(220, 40, 40)
+        } else if (ratio > 0.3) {
+            hpFill.color = k.rgb(240, 140, 30)
+        } else {
+            hpFill.color = k.rgb(255, 20, 20)
+        }
+    })
     k.onKeyPress("9", () => {
         k.go("editor")
     })

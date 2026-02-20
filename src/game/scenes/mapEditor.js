@@ -1,29 +1,29 @@
-
 import { blockTypes } from "../level/blockTypes.js"
 import { enemyTypes } from "../entities/enemy.js"
+import { renderPixelSprite } from "../pixel/renderPixelSprite.js"
+import { tileSprites } from "../world/tileRegistry.js"
 
 export function editorScene(k) {
+
+    const TILE_ORDER = Object.keys(tileSprites)
+    let currentTileIndex = 0
+    let currentTile = TILE_ORDER[currentTileIndex]
 
     let spawnEntity = null
     let spawnPreview = null
     let enemyPreview = null
+    let tilePreview = null
     let currentEnemyType = "ghoul"
     const ENEMY_ORDER = ["ghoul", "orc", "golem"]
 
-
-
-    // --- Reset Camera ---
     k.setCamPos(k.width() / 2, k.height() / 2)
     k.setCamScale(1)
 
-    // ---------- State ----------
     const blocks = []
     let currentType = "platform"
     let startPos = null
     let preview = null
 
-
-    // ---------- Camera ----------
     let camX = k.width() / 2
     let camY = k.height() / 2
     const CAM_SPEED = 400
@@ -38,6 +38,18 @@ export function editorScene(k) {
             enemyPreview.pos = k.toWorld(k.mousePos())
         }
 
+        if (tilePreview && currentType === "tile") {
+
+            const worldPos = k.toWorld(k.mousePos())
+
+            const TILE_SIZE = 24 * 2
+
+            const snappedX = Math.floor(worldPos.x / TILE_SIZE) * TILE_SIZE
+            const snappedY = Math.floor(worldPos.y / TILE_SIZE) * TILE_SIZE
+
+            tilePreview.pos = k.vec2(snappedX, snappedY)
+        }
+
         if (!startPos) {
             if (k.isKeyDown("a")) camX -= CAM_SPEED * dt
             if (k.isKeyDown("d")) camX += CAM_SPEED * dt
@@ -48,7 +60,17 @@ export function editorScene(k) {
         k.setCamPos(camX, camY)
     })
 
-    // ---------- Restore Autosave ----------
+    // ---------------- AUTOSAVE ----------------
+    let autosaveTimer = null
+
+    function scheduleAutosave() {
+        clearTimeout(autosaveTimer)
+        autosaveTimer = setTimeout(() => {
+            localStorage.setItem("autosave_level", JSON.stringify(blocks))
+        }, 300)
+    }
+
+    // ---------------- RESTORE ----------------
     const saved = localStorage.getItem("autosave_level")
     if (saved) {
         const parsed = JSON.parse(saved)
@@ -65,57 +87,64 @@ export function editorScene(k) {
                     k.z(1000),
                     "editorSpawn",
                 ])
+                spawnEntity.editorData = b
 
             } else if (b.type === "enemy") {
 
-                k.add([
+                const entity = k.add([
                     k.rect(b.w, b.h),
                     k.pos(b.x, b.y),
                     k.color(...enemyTypes[b.enemyId].color),
                     k.z(1000),
                     "editorEnemy",
                 ])
+                entity.editorData = b
+
+            } else if (b.type === "tile") {
+
+                const spriteData = tileSprites[b.sprite]
+                if (!spriteData) continue
+
+                const sprite = renderPixelSprite(k, spriteData, 2)
+
+                const tile = k.add([
+                    k.rect(sprite.width, sprite.height),
+                    k.pos(b.x, b.y),
+                    k.opacity(0),
+                    k.z(0),
+                    "editorTile",
+                ])
+
+                sprite.components.forEach(comp => tile.add(comp))
+                tile.editorData = b
 
             } else {
 
-                k.add([
+                const entity = k.add([
                     k.rect(b.w, b.h),
                     k.pos(b.x, b.y),
-                    k.area(),
-                    k.body({ isStatic: true }),
                     k.color(...blockTypes[b.type].color),
                     "editorBlock",
                 ])
+                entity.editorData = b
             }
         }
     }
 
-    function removeSpawnPreview() {
-        if (spawnPreview) {
-            spawnPreview.destroy()
-            spawnPreview = null
-        }
-    }
-
-    // ---------- Block Type Selection ----------
-    k.onKeyPress("1", () => setTool("ground"))
-    k.onKeyPress("2", () => setTool("platform"))
-    k.onKeyPress("3", () => setTool("cave"))
+    // ---------------- TOOL KEYS ----------------
     k.onKeyPress("4", () => setTool("spawn"))
     k.onKeyPress("5", () => setTool("enemy"))
+    k.onKeyPress("6", () => setTool("tile"))
 
     function setTool(type) {
         currentType = type
         updateEditorUI()
 
-        if (spawnPreview) {
-            spawnPreview.destroy()
-            spawnPreview = null
-        }
-        if (enemyPreview) {
-            enemyPreview.destroy()
-            enemyPreview = null
-        }
+        if (spawnPreview) spawnPreview.destroy()
+        if (enemyPreview) enemyPreview.destroy()
+
+        spawnPreview = null
+        enemyPreview = null
 
         if (type === "spawn") {
             spawnPreview = k.add([
@@ -125,6 +154,16 @@ export function editorScene(k) {
                 k.opacity(0.5),
                 k.z(2000),
             ])
+        }
+
+        if (tilePreview) {
+            tilePreview.destroy()
+            tilePreview = null
+        }
+
+        if (type === "tile") {
+
+            updateTilePreview()
         }
 
         if (type === "enemy") {
@@ -138,30 +177,61 @@ export function editorScene(k) {
         }
     }
 
-    // ---------- Mouse Press ----------
+    // ---------------- LEFT CLICK ----------------
     k.onMousePress("left", () => {
 
         const worldPos = k.toWorld(k.mousePos())
 
-        // ---- Spawn Tool (Click Only) ----
-        if (currentType === "spawn") {
+        // ---- TILE ----
+        if (currentType === "tile") {
 
-            const worldPos = k.toWorld(k.mousePos())
+            const TILE_SIZE = 24 * 2
 
-            // Remove old spawn from data
-            for (let i = blocks.length - 1; i >= 0; i--) {
-                if (blocks[i].type === "spawn") {
-                    blocks.splice(i, 1)
-                }
-            }
-
-            // Remove old spawn entity visually
-            if (spawnEntity) {
-                spawnEntity.destroy()
-                spawnEntity = null
-            }
+            const snappedX = Math.floor(worldPos.x / TILE_SIZE) * TILE_SIZE
+            const snappedY = Math.floor(worldPos.y / TILE_SIZE) * TILE_SIZE
 
             const block = {
+                id: crypto.randomUUID(),
+                type: "tile",
+                sprite: currentTile,
+                x: snappedX,
+                y: snappedY,
+                solid: true,
+            }
+
+            blocks.push(block)
+            scheduleAutosave()
+
+            const spriteData = tileSprites[currentTile]
+            if (!spriteData) return
+
+            const sprite = renderPixelSprite(k, spriteData, 2)
+
+            const tile = k.add([
+                k.rect(sprite.width, sprite.height),
+                k.pos(snappedX, snappedY),
+                k.opacity(0),
+                "editorTile",
+            ])
+
+            sprite.components.forEach(comp => tile.add(comp))
+            tile.editorData = block
+
+            return
+        }
+
+        // ---- SPAWN ----
+        if (currentType === "spawn") {
+
+            blocks.splice(
+                blocks.findIndex(b => b.type === "spawn"),
+                1
+            )
+
+            if (spawnEntity) spawnEntity.destroy()
+
+            const block = {
+                id: crypto.randomUUID(),
                 x: worldPos.x,
                 y: worldPos.y,
                 w: 16,
@@ -170,7 +240,7 @@ export function editorScene(k) {
             }
 
             blocks.push(block)
-            localStorage.setItem("autosave_level", JSON.stringify(blocks))
+            scheduleAutosave()
 
             spawnEntity = k.add([
                 k.rect(16, 16),
@@ -180,14 +250,15 @@ export function editorScene(k) {
                 "editorSpawn",
             ])
 
+            spawnEntity.editorData = block
             return
         }
 
+        // ---- ENEMY ----
         if (currentType === "enemy") {
 
-            const worldPos = k.toWorld(k.mousePos())
-
             const block = {
+                id: crypto.randomUUID(),
                 x: worldPos.x,
                 y: worldPos.y,
                 w: 24,
@@ -197,20 +268,20 @@ export function editorScene(k) {
             }
 
             blocks.push(block)
-            localStorage.setItem("autosave_level", JSON.stringify(blocks))
+            scheduleAutosave()
 
-            k.add([
+            const entity = k.add([
                 k.rect(24, 24),
                 k.pos(block.x, block.y),
                 k.color(...enemyTypes[currentEnemyType].color),
-                k.z(1000),
                 "editorEnemy",
             ])
 
+            entity.editorData = block
             return
         }
 
-        // ---- Normal Block Drawing ----
+        // ---- RECTANGLE DRAW ----
         startPos = worldPos
 
         preview = k.add([
@@ -221,33 +292,12 @@ export function editorScene(k) {
         ])
     })
 
-    // ---------- Mouse Move ----------
-    k.onMouseMove(() => {
-        if (!startPos || !preview) return
-
-        const worldPos = k.toWorld(k.mousePos())
-
-        // Move spawn preview if active
-        if (currentType === "spawn" && spawnPreview) {
-            spawnPreview.pos = worldPos
-        }
-
-        const m = k.toWorld(k.mousePos())
-        const x = Math.min(startPos.x, m.x)
-        const y = Math.min(startPos.y, m.y)
-        const w = Math.abs(m.x - startPos.x)
-        const h = Math.abs(m.y - startPos.y)
-
-        preview.pos = k.vec2(x, y)
-        preview.width = w
-        preview.height = h
-    })
-
-    // ---------- Mouse Release ----------
+    // ---------------- RECT FINALIZE ----------------
     k.onMouseRelease("left", () => {
         if (!preview) return
 
         const block = {
+            id: crypto.randomUUID(),
             x: preview.pos.x,
             y: preview.pos.y,
             w: preview.width,
@@ -256,129 +306,130 @@ export function editorScene(k) {
         }
 
         blocks.push(block)
-        localStorage.setItem("autosave_level", JSON.stringify(blocks))
+        scheduleAutosave()
 
-        k.add([
+        const entity = k.add([
             k.rect(block.w, block.h),
             k.pos(block.x, block.y),
-            k.area(),
-            k.body({ isStatic: true }),
             k.color(...blockTypes[currentType].color),
             "editorBlock",
         ])
+
+        entity.editorData = block
 
         preview.destroy()
         preview = null
         startPos = null
     })
 
-
+    // ---------------- DELETE ----------------
     k.onMousePress("right", () => {
 
         const worldPos = k.toWorld(k.mousePos())
 
-        // Find topmost block under cursor
-        const hits = [
-            ...k.get("editorBlock"),
-            ...k.get("editorEnemy"),
-        ].filter(e =>
+        const target = k.get().reverse().find(e =>
+            (e.is("editorBlock") ||
+                e.is("editorEnemy") ||
+                e.is("editorTile") ||
+                e.is("editorSpawn")) &&
             worldPos.x >= e.pos.x &&
             worldPos.x <= e.pos.x + e.width &&
             worldPos.y >= e.pos.y &&
             worldPos.y <= e.pos.y + e.height
         )
 
-        if (hits.length > 0) {
-            const target = hits[hits.length - 1]
+        if (!target || !target.editorData) return
 
-            // Remove from blocks array
-            for (let i = blocks.length - 1; i >= 0; i--) {
-                const b = blocks[i]
-                if (
-                    b.x === target.pos.x &&
-                    b.y === target.pos.y &&
-                    b.w === target.width &&
-                    b.h === target.height
-                ) {
-                    blocks.splice(i, 1)
-                    break
-                }
-            }
+        blocks.splice(
+            blocks.findIndex(b => b.id === target.editorData.id),
+            1
+        )
 
-            target.destroy()
-            localStorage.setItem("autosave_level", JSON.stringify(blocks))
-            return
-        }
-
-        // Check spawn separately
-        if (spawnEntity) {
-            if (
-                worldPos.x >= spawnEntity.pos.x &&
-                worldPos.x <= spawnEntity.pos.x + 16 &&
-                worldPos.y >= spawnEntity.pos.y &&
-                worldPos.y <= spawnEntity.pos.y + 16
-            ) {
-                spawnEntity.destroy()
-                spawnEntity = null
-
-                for (let i = blocks.length - 1; i >= 0; i--) {
-                    if (blocks[i].type === "spawn") {
-                        blocks.splice(i, 1)
-                    }
-                }
-
-                localStorage.setItem("autosave_level", JSON.stringify(blocks))
-            }
-        }
+        target.destroy()
+        scheduleAutosave()
     })
 
-    // ---------- Export ----------
-    k.onKeyPress("e", () => {
-        downloadJSON(blocks, "level1.json")
-    })
-
-    // ---------- Scene Switching ----------
+    // ---------------- EXPORT / PLAY ----------------
+    k.onKeyPress("e", () => downloadJSON(blocks, "level1.json"))
     k.onKeyPress("p", () => {
         window.__LEVEL_DATA__ = blocks
         k.go("overworld")
     })
+    k.onKeyPress("r", () => {
 
-    k.onKeyPress("q", () => {
-        if (currentType !== "enemy") return
+        if (currentType !== "tile") return
 
-        const currentIndex = ENEMY_ORDER.indexOf(currentEnemyType)
-        const nextIndex = (currentIndex + 1) % ENEMY_ORDER.length
-        currentEnemyType = ENEMY_ORDER[nextIndex]
+        currentTileIndex = (currentTileIndex + 1) % TILE_ORDER.length
+        currentTile = TILE_ORDER[currentTileIndex]
 
+        updateTilePreview()
+        updateEditorUI()
+    })
 
+    function updateTilePreview() {
 
-        if (enemyPreview) {
-            enemyPreview.color = k.rgb(...enemyTypes[currentEnemyType].color)
+        if (tilePreview) {
+            tilePreview.destroy()
+            tilePreview = null
         }
 
-        updateEditorUI()   // 👈 important
-    })
+        if (currentType !== "tile") return
 
-    k.onKeyPress("8", () => {
-        k.go("overworld")
-    })
+        const spriteData = tileSprites[currentTile]
+        if (!spriteData) return
 
-    // ---------- Download Helper ----------
+        const sprite = renderPixelSprite(k, spriteData, 2)
+
+        tilePreview = k.add([
+            k.rect(sprite.width, sprite.height),
+            k.pos(0, 0),
+            k.opacity(0),
+            k.z(2000),
+        ])
+
+        sprite.components.forEach(comp => {
+            const child = tilePreview.add(comp)
+            child.opacity = 0.5
+        })
+    }
+    k.onKeyPress("8", () => k.go("overworld"))
+
+    k.onKeyPress("delete", clearMap)
+
     function downloadJSON(data, filename = "level1.json") {
-        const blob = new Blob(
-            [JSON.stringify(data, null, 2)],
-            { type: "application/json" }
-        )
-
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
         const url = URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
         a.download = filename
         a.click()
-
         URL.revokeObjectURL(url)
     }
 
+    function clearMap() {
+
+        // Clear data
+        blocks.length = 0
+
+        // Destroy all editor entities
+        ;[
+            ...k.get("editorBlock"),
+            ...k.get("editorEnemy"),
+            ...k.get("editorTile"),
+            ...k.get("editorSpawn"),
+        ].forEach(e => e.destroy())
+
+        spawnEntity = null
+        spawnPreview = null
+        enemyPreview = null
+
+        // Clear autosave
+        localStorage.removeItem("autosave_level")
+
+        console.log("Map cleared")
+    }
+
+    // --------------- UI (unchanged) ---------------
     const panelWidth = k.width() * 0.20
     const marginX = k.width() * 0.02
     const marginY = k.height() * 0.02
@@ -386,87 +437,35 @@ export function editorScene(k) {
     const titleSize = Math.max(16, k.height() * 0.03)
     const bodySize = Math.max(13, k.height() * 0.022)
 
-// Temporary text to measure height
-    const tempText = k.add([
-        k.text("", {
-            size: bodySize,
-            styles: false,
-            width: panelWidth * 0.85,
-        }),
-        k.pos(0, 0),
-        k.opacity(0),
-    ])
-
     function buildEditorText() {
         return (
             "TOOLS\n" +
-            "1 Ground\n" +
-            "2 Platform\n" +
-            "3 Cave\n" +
             "4 Spawn\n" +
-            "5 Enemy\n\n" +
+            "5 Enemy\n" +
+            "6 Tile\n\n" +
+            `Current Tile: ${currentTile}\n\n` +
             `Current Tool: ${currentType.toUpperCase()}\n\n` +
             `Enemy Type: ${currentEnemyType.toUpperCase()}\n\n` +
             "Q  Cycle Enemy\n" +
             "WASD Move Camera\n" +
             "P  Play Test\n" +
+            "DELETE delete map\n\n" +
             "E  Export"
         )
     }
 
-    tempText.text = buildEditorText()
-
-// Calculate dynamic height
-    const dynamicHeight =
-        tempText.height + (k.height() * 0.15)
-
-    tempText.destroy()
-
-// Panel background
-    k.add([
-        k.rect(panelWidth, dynamicHeight),
-        k.pos(marginX, marginY),
-        k.color(15, 20, 30),
-        k.opacity(0.85),
-        k.fixed(),
-        k.z(999),
-    ])
-
-// Accent bar
-    k.add([
-        k.rect(panelWidth, 4),
-        k.pos(marginX, marginY),
-        k.color(80, 120, 200),
-        k.fixed(),
-        k.z(1000),
-    ])
-
-// Title
-    k.add([
-        k.text("MAP EDITOR", { size: titleSize, styles: false }),
-        k.pos(
-            marginX + panelWidth * 0.05,
-            marginY + k.height() * 0.04
-        ),
-        k.color(200, 220, 255),
-        k.fixed(),
-        k.z(1001),
-    ])
-
-// Dynamic text body
     const uiBody = k.add([
         k.text(buildEditorText(), {
             size: bodySize,
             styles: false,
             width: panelWidth * 0.85,
         }),
-        k.pos(
-            marginX + panelWidth * 0.05,
-            marginY + k.height() * 0.10
-        ),
+        k.pos(marginX + panelWidth * 0.05, marginY + k.height() * 0.10),
         k.fixed(),
         k.z(1001),
     ])
+
+
 
     function updateEditorUI() {
         uiBody.text = buildEditorText()

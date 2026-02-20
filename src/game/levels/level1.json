@@ -1,343 +1,1076 @@
 [
   {
-    "x": 914.459999999997,
-    "y": 313.5,
-    "w": 1,
-    "h": 1,
-    "type": "ground"
+    "id": "e0fe0caa-86ee-4880-a3b8-5914d4dbd5c9",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1008,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 17.739999999996883,
-    "y": 341.3800000000004,
-    "w": 0,
-    "h": 0,
-    "type": "ground"
+    "id": "a12413fa-bff5-4cdd-86c0-acb466cd65cd",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1056,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 173.23999999999688,
-    "y": 297.3800000000004,
-    "w": 0.5,
-    "h": 0.5,
-    "type": "ground"
+    "id": "4c174aee-9f1d-4f72-935e-e20bedfc0d1c",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1104,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 188.23999999999688,
-    "y": 218.3800000000004,
-    "w": 0.5,
-    "h": 0,
-    "type": "ground"
+    "id": "a1ef2da3-217d-4def-8174-23297a0bd35e",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1152,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 1991.7800000000013,
-    "y": 303.5,
-    "w": 68.00000000000023,
-    "h": 44,
-    "type": "ground"
+    "id": "de7ee4cf-6dd3-4bf1-b2cd-5f85d633fe5c",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1200,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 2058.7800000000016,
-    "y": 330.0200000000061,
-    "w": 72,
-    "h": 63,
-    "type": "ground"
+    "id": "ff474a5a-2bda-49f0-af09-54a3160b23bf",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1248,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 2129.0600000000018,
-    "y": 355.0200000000061,
-    "w": 156,
-    "h": 38.5,
-    "type": "ground"
+    "id": "397f372d-d60a-456e-bff8-f11fc5dbd095",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 960,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 2283.2000000000035,
-    "y": 285.0200000000061,
-    "w": 176.5,
-    "h": 69,
-    "type": "ground"
+    "id": "dd79c04a-4987-474e-9159-fd2e7fe00ae2",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 912,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 2284.7000000000035,
-    "y": 353.0200000000061,
-    "w": 181.5,
-    "h": 41,
-    "type": "ground"
+    "id": "3d7fe4a9-baf8-4497-a484-b79d1436dfc6",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 816,
+    "y": 576,
+    "solid": true
   },
   {
-    "x": 2262.3400000000056,
-    "y": 324.0200000000061,
-    "w": 23,
-    "h": 2,
-    "type": "platform"
-  },
-  {
-    "x": 2201.3400000000056,
-    "y": 297.5200000000061,
-    "w": 34.5,
-    "h": 12.5,
-    "type": "platform"
-  },
-  {
-    "x": 2458.660000000002,
-    "y": 286.5200000000061,
-    "w": 346.5,
-    "h": 108.5,
-    "type": "ground"
-  },
-  {
-    "x": 2587.160000000002,
-    "y": 202.0400000000093,
-    "w": 178.5,
-    "h": 46.5,
-    "type": "cave"
-  },
-  {
-    "x": 2803.2999999999834,
-    "y": 101.68000000001825,
-    "w": 81,
-    "h": 185,
-    "type": "cave"
-  },
-  {
-    "x": 2793.2999999999834,
-    "y": 240.68000000001825,
-    "w": 10.5,
-    "h": 12.5,
-    "type": "platform"
-  },
-  {
-    "x": 2544.5800000000118,
-    "y": 227.9200000000087,
-    "w": 42,
-    "h": 19.5,
-    "type": "platform"
-  },
-  {
-    "x": 2480.5800000000118,
-    "y": 251.9200000000087,
-    "w": 51,
-    "h": 6,
-    "type": "platform"
-  },
-  {
-    "x": 2782.139999999941,
-    "y": 153.72000000001844,
-    "w": 22,
-    "h": 10,
-    "type": "platform"
-  },
-  {
-    "x": 2879.999999999948,
-    "y": 82.08000000003904,
-    "w": 169.5,
-    "h": 18,
-    "type": "platform"
-  },
-  {
-    "x": 3052.959999999922,
-    "y": 54.94000000005508,
-    "w": 198,
-    "h": 12.5,
-    "type": "platform"
-  },
-  {
-    "x": 3131.339999999902,
-    "y": -6.059999999944921,
-    "w": 93,
-    "h": 14,
-    "type": "platform"
-  },
-  {
-    "x": 3079.339999999902,
-    "y": 18.94000000005508,
-    "w": 57,
-    "h": 9.5,
-    "type": "platform"
-  },
-  {
-    "x": 3224.0999999999285,
-    "y": -45.879999999952815,
-    "w": 152,
-    "h": 13.5,
-    "type": "platform"
-  },
-  {
-    "x": 3337.2199999999348,
-    "y": -100.73999999996886,
-    "w": 196,
-    "h": 35,
-    "type": "platform"
-  },
-  {
-    "x": 3244.339999999932,
-    "y": -87.0199999999868,
-    "w": 43,
-    "h": 11,
-    "type": "platform"
-  },
-  {
-    "x": 3459.739999999929,
-    "y": -200.30000000000018,
-    "w": 73,
-    "h": 56,
-    "type": "cave"
-  },
-  {
-    "x": 3506.239999999929,
-    "y": -145.80000000000018,
-    "w": 27,
-    "h": 46,
-    "type": "cave"
-  },
-  {
-    "x": 3484.239999999929,
-    "y": -200.30000000000018,
-    "w": 50.5,
-    "h": 55,
-    "type": "cave"
-  },
-  {
-    "x": 3531.739999999929,
-    "y": -149.30000000000018,
-    "w": 1.5,
-    "h": 48,
-    "type": "cave"
-  },
-  {
-    "x": 571,
-    "y": 633,
-    "w": 0,
-    "h": 0,
-    "type": "platform"
-  },
-  {
-    "x": 343,
-    "y": 445,
-    "w": 0,
-    "h": 1,
-    "type": "platform"
-  },
-  {
-    "x": 542,
-    "y": 452,
-    "w": 1,
-    "h": 1,
-    "type": "platform"
-  },
-  {
-    "x": 815,
-    "y": 524,
-    "w": 1,
-    "h": 1,
-    "type": "platform"
-  },
-  {
-    "x": 840,
-    "y": 327,
-    "w": 1,
-    "h": 1,
-    "type": "platform"
-  },
-  {
-    "x": 753,
-    "y": 157,
-    "w": 1,
-    "h": 1,
-    "type": "platform"
-  },
-  {
-    "x": 52.83999999999878,
-    "y": 568.6400000000004,
-    "w": 1372,
-    "h": 326,
-    "type": "ground"
-  },
-  {
-    "x": 256.8399999999988,
-    "y": 503.64000000000044,
-    "w": 246,
-    "h": 10,
-    "type": "platform"
-  },
-  {
-    "x": 529.8399999999988,
-    "y": 414.64000000000044,
-    "w": 288,
-    "h": 16,
-    "type": "platform"
-  },
-  {
-    "x": 910.8399999999988,
-    "y": 334.64000000000044,
-    "w": 217,
-    "h": 38,
-    "type": "platform"
-  },
-  {
-    "x": 829.8399999999988,
-    "y": 373.64000000000044,
-    "w": 46,
-    "h": 8,
-    "type": "platform"
-  },
-  {
-    "x": 583.8399999999988,
-    "y": 270.64000000000044,
-    "w": 162,
-    "h": 32,
-    "type": "platform"
-  },
-  {
-    "x": 805.8399999999988,
-    "y": 299.64000000000044,
-    "w": 49,
-    "h": 11,
-    "type": "platform"
-  },
-  {
-    "x": 1004.8399999999988,
-    "y": 304.64000000000044,
-    "w": 24,
-    "h": 24,
-    "type": "enemy",
-    "enemyId": "golem"
-  },
-  {
-    "x": 843.8399999999988,
-    "y": 347.64000000000044,
-    "w": 24,
-    "h": 24,
-    "type": "enemy",
-    "enemyId": "golem"
-  },
-  {
-    "x": 691.8399999999988,
-    "y": 382.64000000000044,
-    "w": 24,
-    "h": 24,
-    "type": "enemy",
-    "enemyId": "golem"
-  },
-  {
-    "x": 607.8399999999988,
-    "y": 516.6400000000004,
-    "w": 24,
-    "h": 24,
-    "type": "enemy",
-    "enemyId": "golem"
-  },
-  {
-    "x": 481.8399999999988,
-    "y": 468.64000000000044,
-    "w": 24,
-    "h": 24,
-    "type": "enemy",
-    "enemyId": "golem"
-  },
-  {
-    "x": 105.83999999999878,
-    "y": 506.64000000000044,
+    "id": "4f2838ad-8b15-4bf2-9eb8-1098458cccdb",
+    "x": 959,
+    "y": 466,
     "w": 16,
     "h": 16,
     "type": "spawn"
+  },
+  {
+    "id": "76fea97a-6f6d-4fd5-84b4-dbabe43a1ef2",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 864,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "e9d5d930-c506-49f3-ad5e-c9fa898adb8d",
+    "type": "tile",
+    "sprite": "grassTile2",
+    "x": 1296,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "03254ca9-c10a-4269-94c6-ac18870b65cc",
+    "type": "tile",
+    "sprite": "grassTile2",
+    "x": 1344,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "3706f76c-6b88-4dc0-89f8-642d20a65109",
+    "type": "tile",
+    "sprite": "grassTile2",
+    "x": 1392,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "90e08a83-8e5f-4387-98b1-ea0bf4a181d2",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1440,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "ba621a6c-3b9f-4b09-8617-f87ee9562f4a",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1488,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "07e6dfc0-2ac4-40c7-8704-ac4ce248e340",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1536,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "05d5f492-acc7-4431-9ee7-5398c98ea908",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1584,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "fdb61d0c-a305-477c-85de-0af10ed4320a",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1392,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "3eac11d5-3ace-4fae-ba1f-adbcb96e800a",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1440,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "ef08ab40-bcc0-40b6-9891-27d079501d10",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1584,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "14a3d806-dc0e-4c5a-b807-2a8b9eb0d45c",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1536,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "9817b6f1-6244-44ee-9d4c-10147ea1ccfe",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1488,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "2f0e39a2-3ed1-429e-aef7-b1244f4d9fcf",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1344,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "47717ec9-0b0d-429d-a5f9-70652ceef6f1",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1392,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "762f3c9b-126f-4e32-abb1-edc7c5050cfd",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1440,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "81609893-07fa-4d24-8068-30b40b875ac5",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1536,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "4a3341f8-3228-41e6-9dcf-85d77a8d6998",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1584,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "74e00186-cde9-4490-82f5-389958d70696",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1488,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "7c8d744a-237d-49c8-b69c-1eede0d3aedd",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1296,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "974415c7-91d3-4268-8ab6-15faaed03bc9",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1344,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "60273f53-6a05-4ac6-9fa7-3ea27a6cea73",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1392,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "a04ba563-6e57-4d8a-9083-eb8913de5b5d",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1440,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "b9d8d8a6-ac13-4407-af8b-049bef891ada",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1488,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "e86cb32f-3350-4eb4-9941-51c3b67f6a73",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1584,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "71bffd7a-6c7e-43c2-824d-5ffd5daccbe2",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1584,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "bc81daf1-10f2-462e-afe4-a92b7492d07f",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1536,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "62386b80-1605-4862-a981-1227b78b0eed",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1632,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "62ad8577-c967-48ca-8ece-95ea52728d46",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1680,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "40da43a1-db25-42ab-99df-58bcecd417ab",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1728,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "17773873-cbb8-44aa-b20d-bebaef12cc25",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1776,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "049ea24a-0a5a-4824-a010-cb38f98ba83f",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1632,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "243cf5f2-0e97-4c0d-8c38-d40ee2918066",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1680,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "b1a85923-7650-4235-9c85-7bec41d676e0",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1728,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "fdd68e52-37f8-4d14-ba3f-58c53d35b859",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1776,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "188be24b-08eb-462a-a1ba-6b07a07ebdb9",
+    "type": "tile",
+    "sprite": "grassTile2",
+    "x": 1824,
+    "y": 384,
+    "solid": true
+  },
+  {
+    "id": "edb3c61f-8cc3-4f40-b4e8-0a44ff2894c2",
+    "type": "tile",
+    "sprite": "grassTile2",
+    "x": 1872,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "72af68af-9d88-4300-8146-a95fca6b6be5",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1872,
+    "y": 384,
+    "solid": true
+  },
+  {
+    "id": "51e757eb-6dd9-489b-983b-c96866cb1875",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1872,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "e33b18af-2166-4b23-ad22-e96ad161e53c",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1824,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "ffd57702-7472-4533-9e0b-ed558fd92c92",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1824,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "ff7ae255-56d0-4c2a-84af-1320ff4e92b5",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1920,
+    "y": 384,
+    "solid": true
+  },
+  {
+    "id": "7911d090-9917-4b8e-8e5d-2f327479d030",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1920,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "4a7d4050-2f5f-40ba-a752-cd41437217cf",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1920,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "9700db49-4bec-4a40-9564-1d6a196d8647",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1872,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "6144279e-7150-417f-8964-81485cde3927",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1920,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "7431ee10-59f4-4e95-8d1d-b72598f7a102",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 1968,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "f85c058a-3a19-40fd-b0a1-91bd53e1ce94",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 2016,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "5fbe9e2e-3089-47bb-b954-3b8924a69d13",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 2064,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "b4e7ab32-20e4-4522-98c6-d7e02544538f",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 2064,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "8f8bc663-49e8-4a79-945f-8cccbf582780",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 2112,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "da38baa0-4e37-455b-a617-87eaaa3cfc35",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 2160,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "973d452c-bc6e-43e7-bf31-4e1330931085",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 2160,
+    "y": 336,
+    "solid": true
+  },
+  {
+    "id": "a61e3528-c756-4cb2-886c-253045527a20",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1632,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "bb11a915-21cc-4d25-9648-1a692c68d25f",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1920,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "6ed8cbca-65f2-457c-8afb-f8a680f172e2",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1824,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "03483eac-704a-4e7a-ad73-c0648618e6e6",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1824,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "d16435b9-bf5d-4446-8625-8d4631de299a",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1776,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "0490529b-8c9c-4f63-8910-da40e354ffe8",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1728,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "0c2c9742-5fd5-4e69-a0ea-17aaf5a6c10e",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1680,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "215adf90-b753-4260-9b22-49fa1f81125b",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1680,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "45ce103c-d5fb-4f0d-8697-ee468b67bba7",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1872,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "6a223b2a-8c3e-4445-a4b3-752881217e2f",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1872,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "306cbda5-369a-488e-9efe-a1b5b339c5c8",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1824,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "8ecfa963-6dce-4737-9065-8f1bd09da061",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1632,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "7386c8e7-7017-4162-b714-ce496e4e41a8",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1632,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "d8d327e4-22bc-4b7e-a669-e6094dea6dfb",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1728,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "eb8f21ee-c1c0-46e0-be2e-32d9c8c4abf9",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1776,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "71a195ff-e419-4d9a-b282-f01f5258aaf4",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1776,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "da84033a-3bc4-47f5-a40e-daf3bd0d18c4",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1824,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "f30a9909-16c5-4d5b-8b7e-bf20b6bd9527",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1824,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "b62b930d-bcec-4b9d-9392-51a85ef07851",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1728,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "0a3cde8c-1734-497c-8e2d-bd68656840e6",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1680,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "35f526c3-b116-4be1-b44e-5d0b90ec4767",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 2016,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "b0cba955-1024-4df8-b066-ae0d49d5433f",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1920,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "cba2a059-17d0-49dc-82f4-e321502aef3b",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1920,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "ca75c483-e73f-4428-853b-5eac890fa321",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1920,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "57adaa60-8c28-4555-9849-7c5d7c34033b",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 2016,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "30519908-844d-4054-91d8-9344a1f8dd64",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 2016,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "c9d3558b-795e-4d98-a986-4903ba51a01d",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1920,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "ec01d18e-ebdc-4620-9556-727e6a0af907",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "e380e413-ba36-4456-a858-2b5d267927b1",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "3e12535c-ad4a-46ad-a28e-0d3ccb733b78",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 528,
+    "solid": true
+  },
+  {
+    "id": "c1465fbc-c168-4cc6-97fe-1d5614fcdd09",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 480,
+    "solid": true
+  },
+  {
+    "id": "8de4905b-89f2-45f7-99a0-d346a72e2823",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "ec61682f-2fa7-404d-b9e1-59555bd58b64",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 432,
+    "solid": true
+  },
+  {
+    "id": "34cd85ca-82b2-48c5-8879-063e2d38474d",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 384,
+    "solid": true
+  },
+  {
+    "id": "e06f5e75-c549-4cdd-97e1-52943f214939",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 384,
+    "solid": true
+  },
+  {
+    "id": "5c76b97f-8820-4528-94d8-94ce21ccddfc",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 1968,
+    "y": 384,
+    "solid": true
+  },
+  {
+    "id": "e6f5f593-e3e4-49a2-8247-3ad5ee316be1",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 768,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "b8f70891-a0bc-480f-b6e1-45e519b0a681",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 720,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "423d46cb-0c24-459e-a413-2d1696de9fb3",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 720,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "94dbb379-084e-445b-9244-a9c67edbce84",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 672,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "0a212994-311e-4784-bb16-6e6f2f766ffa",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 576,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "eb866d16-ab58-4758-b344-cf1ed4a2cc85",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 576,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "d6a5c361-3c03-4bbb-9bc2-4b3b7e5e512a",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 624,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "a63febb9-bb42-4380-a5c1-3721173d8aca",
+    "type": "tile",
+    "sprite": "grassTile2",
+    "x": 528,
+    "y": 624,
+    "solid": true
+  },
+  {
+    "id": "055e3e46-ae7b-4447-a64d-3c55b4202dc9",
+    "x": 1550,
+    "y": 419,
+    "w": 24,
+    "h": 24,
+    "type": "enemy",
+    "enemyId": "ghoul"
+  },
+  {
+    "id": "09917fe1-1eed-4be7-9326-00bef0b5c146",
+    "type": "tile",
+    "sprite": "grassTile3",
+    "x": 96,
+    "y": 672,
+    "solid": true
+  },
+  {
+    "id": "51c9736f-fb1e-405d-a7f1-89794a907dee",
+    "type": "tile",
+    "sprite": "grassTile3",
+    "x": 48,
+    "y": 624,
+    "solid": true
+  },
+  {
+    "id": "609670ec-94f7-4d63-b196-070bc84c7b6a",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 48,
+    "y": 672,
+    "solid": true
+  },
+  {
+    "id": "74ec96a8-95a2-4255-82b2-861c8e7e9398",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 96,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "253c6c1c-ec76-4ef7-b22b-c07c8215cfad",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 96,
+    "y": 768,
+    "solid": true
+  },
+  {
+    "id": "3e164e15-a6ae-4d65-b791-ec5911b393a7",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 48,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "af3d90a3-290e-4e12-847b-d9caffbfb091",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 528,
+    "y": 672,
+    "solid": true
+  },
+  {
+    "id": "92df9e0d-5158-4c87-a4d6-13d1a10c9290",
+    "type": "tile",
+    "sprite": "dirtTile",
+    "x": 576,
+    "y": 624,
+    "solid": true
+  },
+  {
+    "id": "95c68a15-60a7-45bb-9e6f-15a6ed70d165",
+    "type": "tile",
+    "sprite": "grassTile2",
+    "x": 480,
+    "y": 672,
+    "solid": true
+  },
+  {
+    "id": "dbfadc51-a836-4adb-a1ee-4f33c436ae43",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 192,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "7cd9e700-b813-4992-838a-4afd4619ed05",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 240,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "1d457054-b31a-49e7-8418-2b0c3e5ba549",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 288,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "11b277d1-ef7c-4a23-a03d-88fe3b5c5cee",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 336,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "7960db53-0f01-485d-8885-d166c6a4757d",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 384,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "91676d0b-5f4a-4516-84f1-12923e7ab00c",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 384,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "105f41e3-3ff9-4424-a29d-a65b154b5b65",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 432,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "5ff40fd8-f970-478b-a0c3-acba02d5bd29",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 144,
+    "y": 720,
+    "solid": true
+  },
+  {
+    "id": "f8d652ac-9666-4352-b2a1-8fe970b95a39",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 240,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "ecec6e19-a6c0-4e86-8a6f-5de5c2e0eccf",
+    "type": "tile",
+    "sprite": "grassTile",
+    "x": 288,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "c4a1e8ab-38fc-4fa2-930c-d667f87f29e3",
+    "type": "tile",
+    "sprite": "grassTile2",
+    "x": 192,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "39634a86-2342-4ee8-9925-423850ab2a34",
+    "type": "tile",
+    "sprite": "grassTile3",
+    "x": 336,
+    "y": 576,
+    "solid": true
+  },
+  {
+    "id": "2eb0f609-0814-4a1a-a83e-3a7f0ff2cb00",
+    "type": "tile",
+    "sprite": "grassTile4",
+    "x": 288,
+    "y": 624,
+    "solid": true
+  },
+  {
+    "id": "fe91d4ee-0c96-4e8c-8455-d0e7d14acbc2",
+    "type": "tile",
+    "sprite": "grassTile4",
+    "x": 240,
+    "y": 624,
+    "solid": true
+  },
+  {
+    "id": "a3475678-586e-4c88-a161-d33ee88cbb91",
+    "type": "tile",
+    "sprite": "grassTile4",
+    "x": 192,
+    "y": 624,
+    "solid": true
+  },
+  {
+    "id": "a03104ed-e68b-4379-83a6-62b6a8293574",
+    "type": "tile",
+    "sprite": "grassTile4",
+    "x": 336,
+    "y": 624,
+    "solid": true
+  },
+  {
+    "id": "35d3b4d3-d90f-4f13-961f-85ebd30d72dd",
+    "x": 287,
+    "y": 533,
+    "w": 24,
+    "h": 24,
+    "type": "enemy",
+    "enemyId": "ghoul"
   }
 ]

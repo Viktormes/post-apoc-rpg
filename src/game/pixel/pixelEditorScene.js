@@ -137,6 +137,7 @@ C          Clear canvas
 G          Toggle grid
 E          Export JSON
 L          Load JSON
+T          Save Tile
 8          Back to game`,
             { size: 14, width: panelWidth - 20 }
         ),
@@ -580,6 +581,33 @@ L          Load JSON
         k.tween(1, 0, 1.5, v => msg.opacity = v)
         k.wait(1.5, () => msg.destroy())
     }
+
+    k.onKeyPress("t", async () => {
+
+        const name = prompt("Tile name?")
+        if (!name) return
+
+        const spriteData = {
+            width: editor.WIDTH,
+            height: editor.HEIGHT,
+            palette: editor.palette,
+            frames: [editor.frames[editor.currentFrame]] // only current frame
+        }
+
+        const fileHandle = await window.showSaveFilePicker({
+            suggestedName: `${name}.json`,
+            types: [{
+                description: "JSON Files",
+                accept: { "application/json": [".json"] }
+            }]
+        })
+
+        const writable = await fileHandle.createWritable()
+        await writable.write(JSON.stringify(spriteData, null, 2))
+        await writable.close()
+
+        showExportMessage("Tile saved!")
+    })
 
 
     k.onKeyPress("8", () => k.go("overworld"))

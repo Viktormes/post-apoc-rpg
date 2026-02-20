@@ -124,7 +124,31 @@ export function attachPlayerJumpControls(k, player, opts = {}) {
 
     k.onKeyPress("space", () => {
         if (!inputEnabled()) return
-        if (player.isGrounded()) player.jump()
+        if (!player.isGrounded()) return
+
+        player.jump()
+
+        // ----------------------------------
+        // ✨ Jump Puff Effect
+        // ----------------------------------
+
+        const centerX = player.pos.x + (player.spriteWidth ?? 24) / 2
+        const footY = player.pos.y + (player.spriteHeight ?? 28)
+
+        for (let i = 0; i < 4; i++) {
+
+            const dir = (Math.random() - 0.5) * 80
+
+            k.add([
+                k.pos(centerX + k.rand(-6, 6), footY - 2),
+                k.rect(6, 3),
+                k.anchor("center"),
+                k.color(230, 230, 230),
+                k.opacity(0.7),
+                k.move(dir, -40),
+                k.lifespan(0.25, { fade: 0.2 }),
+            ])
+        }
     })
 
     k.onKeyRelease("space", () => {
@@ -144,11 +168,14 @@ export function attachPlayerMovement(k, player, opts = {}) {
         inputEnabled = () => true,
     } = opts
 
+
+    let isSprinting = false
     let inputDirection = 0
     let wasGrounded = false
     let boostTimer = 0
     let bounceCooldown = 0
     let prevVelY = 0
+    let airTime = 0
 
 
     function startAttack() {
@@ -157,6 +184,7 @@ export function attachPlayerMovement(k, player, opts = {}) {
 
         const swingDuration = 0.18
         const direction = player.facing ?? 1
+
 
         const centerX = () => player.pos.x + (player.spriteWidth ?? 24) / 2
         const centerY = () => player.pos.y + (player.spriteHeight ?? 28) / 2
@@ -232,15 +260,53 @@ export function attachPlayerMovement(k, player, opts = {}) {
         const grounded = player.isGrounded()
         const justLanded = grounded && !wasGrounded
 
+        if (!grounded) {
+            airTime += k.dt()
+        }
+
         if (player.attackCooldown > 0) {
             player.attackCooldown -= k.dt()
+        }
+
+        if (isSprinting && player.isGrounded()) {
+            player.angle = 5 * player.facing
+        } else {
+            player.angle = 0
         }
 
         bounceCooldown = Math.max(0, bounceCooldown - k.dt())
 
         if (justLanded) {
+
             boostTimer = boostTime
 
+            const hardLanding = airTime > 0.18
+
+            if (hardLanding) {
+
+                const centerX = player.pos.x + (player.spriteWidth ?? 24) / 2
+                const footY = player.pos.y + (player.spriteHeight ?? 28)
+
+                for (let i = 0; i < 6; i++) {
+
+                    const dir = (Math.random() - 0.5) * 140
+
+                    k.add([
+                        k.pos(centerX + k.rand(-10, 10), footY - 2),
+                        k.rect(6, 3),
+                        k.anchor("center"),
+                        k.color(220, 220, 220),
+                        k.opacity(0.8),
+                        k.move(dir, -20),
+                        k.lifespan(0.35, { fade: 0.25 }),
+                    ])
+                }
+            }
+
+            // reset air timer
+            airTime = 0
+
+            // keep your bounce logic
             const wasFalling = prevVelY > 40
             if (wasFalling && bounceCooldown <= 0 && player.vel) {
                 player.vel.y = -landingBounce
@@ -253,20 +319,63 @@ export function attachPlayerMovement(k, player, opts = {}) {
         prevVelY = player.vel ? player.vel.y : 0
 
         // ---------------- Animation ----------------
-        if (playerSprite?.frames && playerSprite.frames.length >= 4) {
+        if (playerSprite?.frames && playerSprite.frames.length >= 6) {
 
-            const moving = inputDirection !== 0 && grounded
 
             const IDLE = 0
             const WALK_START = 1
             const WALK_END = 3
+            const JUMP_UP = 4
+            const JUMP_FALL = 5
 
+            const grounded = player.isGrounded()
+            const moving = inputDirection !== 0 && grounded
+
+            // --- AIR STATE HAS PRIORITY ---
+            if (!grounded) {
+
+                // Jumping upward
+                if (player.vel.y < -20) {
+                    if (player.currentFrame !== JUMP_UP) {
+                        player.setFrame(JUMP_UP)
+                    }
+                }
+
+                // Falling downward
+                else if (player.vel.y > 20) {
+                    if (player.currentFrame !== JUMP_FALL) {
+                        player.setFrame(JUMP_FALL)
+                    }
+                }
+
+                return
+            }
+
+            // --- GROUND STATES ---
             if (moving) {
 
                 player.frameTimer -= k.dt()
 
                 if (player.frameTimer <= 0) {
-                    player.frameTimer = player.frameSpeed
+                    player.frameTimer = isSprinting ? player.frameSpeed * 0.6 : player.frameSpeed
+
+                    if (isSprinting && grounded && Math.random() < 0.8) {
+
+                        const centerX = player.pos.x + player.spriteWidth / 2
+                        const footY = player.pos.y + player.spriteHeight
+
+                        const offsetX = -8 * player.facing   // behind foot
+
+                        k.add([
+                            k.pos(centerX + offsetX, footY - 2 + k.rand(-1, 1)),
+                            k.rect(4, 2),
+                            k.move(-40 * player.facing, 0),
+                            k.anchor("center"),
+                            k.color(200, 200, 200),
+                            k.opacity(0.6),
+                            k.lifespan(0.25)
+                        ])
+                    }
 
                     if (player.currentFrame < WALK_START || player.currentFrame > WALK_END) {
                         player.setFrame(WALK_START)
@@ -277,12 +386,14 @@ export function attachPlayerMovement(k, player, opts = {}) {
                     }
 
                     const bobOffset = (player.currentFrame === 2) ? 1 : 0
+
                     for (const child of player.pixelChildren) {
                         child.pos.y = child._baseY + bobOffset
                     }
                 }
 
             } else {
+
                 if (player.currentFrame !== IDLE) {
                     player.setFrame(IDLE)
                 }
@@ -300,14 +411,22 @@ export function attachPlayerMovement(k, player, opts = {}) {
     k.onKeyDown("a", () => {
         if (!inputEnabled()) return
         inputDirection = -1
-        const speed = boostTimer > 0 ? baseSpeed * boostMultiplier : baseSpeed
+        let speed = boostTimer > 0 ? baseSpeed * boostMultiplier : baseSpeed
+
+        if (isSprinting && player.isGrounded()) {
+            speed *= 1.6
+        }
         player.move(-speed, 0)
     })
 
     k.onKeyDown("d", () => {
         if (!inputEnabled()) return
         inputDirection = 1
-        const speed = boostTimer > 0 ? baseSpeed * boostMultiplier : baseSpeed
+        let speed = boostTimer > 0 ? baseSpeed * boostMultiplier : baseSpeed
+
+        if (isSprinting && player.isGrounded()) {
+            speed *= 1.6
+        }
         player.move(speed, 0)
     })
 
@@ -325,5 +444,12 @@ export function attachPlayerMovement(k, player, opts = {}) {
 
     k.onKeyRelease("d", () => {
         if (inputDirection === 1) inputDirection = 0
+    })
+    k.onKeyDown("shift", () => {
+        isSprinting = true
+    })
+
+    k.onKeyRelease("shift", () => {
+        isSprinting = false
     })
 }
