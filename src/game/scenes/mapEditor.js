@@ -1,6 +1,5 @@
 import { blockTypes } from "../level/blockTypes.js"
 import { enemyTypes } from "../entities/enemy.js"
-import { renderPixelSprite } from "../pixel/renderPixelSprite.js"
 import { tileSprites } from "../world/tileRegistry.js"
 
 export function editorScene(k) {
@@ -13,8 +12,8 @@ export function editorScene(k) {
     let spawnPreview = null
     let enemyPreview = null
     let tilePreview = null
-    let currentEnemyType = "ghoul"
-    const ENEMY_ORDER = ["ghoul", "orc", "golem"]
+    let currentEnemyType = "cat"
+    const ENEMY_ORDER = ["ghoul", "orc", "golem", "cat"]
 
     k.setCamPos(k.width() / 2, k.height() / 2)
     k.setCamScale(1)
@@ -28,6 +27,50 @@ export function editorScene(k) {
     let camY = k.height() / 2
     const CAM_SPEED = 400
 
+    // --------------------------------------------------
+    // PERF: cache tile sprites so we DON'T spawn pixel-children
+    // --------------------------------------------------
+    const tileSpriteCache = new Map() // key -> spriteName
+
+    function getOrCreateTileSpriteName(tileKey) {
+        if (tileSpriteCache.has(tileKey)) return tileSpriteCache.get(tileKey)
+
+        const spriteData = tileSprites[tileKey]
+        if (!spriteData) return null
+
+        // Render spriteData into a canvas ONCE
+        const canvas = document.createElement("canvas")
+        canvas.width = spriteData.width
+        canvas.height = spriteData.height
+        const ctx = canvas.getContext("2d")
+
+        const frame = spriteData.frames[0].pixels
+        const palette = spriteData.palette
+
+        for (let py = 0; py < spriteData.height; py++) {
+            for (let px = 0; px < spriteData.width; px++) {
+                const colorIndex = frame[py][px]
+                if (colorIndex === null) continue
+
+                const [r, g, b] = palette[colorIndex]
+                ctx.fillStyle = `rgb(${r},${g},${b})`
+                ctx.fillRect(px, py, 1, 1)
+            }
+        }
+
+        // Stable name per tile key (no random spam)
+        const spriteName = `editor_tile_${tileKey}`
+
+        // Load once
+        k.loadSprite(spriteName, canvas)
+
+        tileSpriteCache.set(tileKey, spriteName)
+        return spriteName
+    }
+
+    // --------------------------------------------------
+    // UPDATE LOOP
+    // --------------------------------------------------
     k.onUpdate(() => {
         const dt = k.dt()
 
@@ -39,14 +82,10 @@ export function editorScene(k) {
         }
 
         if (tilePreview && currentType === "tile") {
-
             const worldPos = k.toWorld(k.mousePos())
-
             const TILE_SIZE = 24 * 2
-
             const snappedX = Math.floor(worldPos.x / TILE_SIZE) * TILE_SIZE
             const snappedY = Math.floor(worldPos.y / TILE_SIZE) * TILE_SIZE
-
             tilePreview.pos = k.vec2(snappedX, snappedY)
         }
 
@@ -102,20 +141,18 @@ export function editorScene(k) {
 
             } else if (b.type === "tile") {
 
-                const spriteData = tileSprites[b.sprite]
-                if (!spriteData) continue
-
-                const sprite = renderPixelSprite(k, spriteData, 2)
+                const spriteName = getOrCreateTileSpriteName(b.sprite)
+                if (!spriteName) continue
 
                 const tile = k.add([
-                    k.rect(sprite.width, sprite.height),
+                    k.sprite(spriteName),
                     k.pos(b.x, b.y),
-                    k.opacity(0),
+                    k.scale(2),
+                    k.anchor("topleft"),
+                    k.area(),
                     k.z(0),
                     "editorTile",
                 ])
-
-                sprite.components.forEach(comp => tile.add(comp))
                 tile.editorData = b
 
             } else {
@@ -142,7 +179,6 @@ export function editorScene(k) {
 
         if (spawnPreview) spawnPreview.destroy()
         if (enemyPreview) enemyPreview.destroy()
-
         spawnPreview = null
         enemyPreview = null
 
@@ -161,10 +197,7 @@ export function editorScene(k) {
             tilePreview = null
         }
 
-        if (type === "tile") {
-
-            updateTilePreview()
-        }
+        if (type === "tile") updateTilePreview()
 
         if (type === "enemy") {
             enemyPreview = k.add([
@@ -186,7 +219,6 @@ export function editorScene(k) {
         if (currentType === "tile") {
 
             const TILE_SIZE = 24 * 2
-
             const snappedX = Math.floor(worldPos.x / TILE_SIZE) * TILE_SIZE
             const snappedY = Math.floor(worldPos.y / TILE_SIZE) * TILE_SIZE
 
@@ -202,19 +234,17 @@ export function editorScene(k) {
             blocks.push(block)
             scheduleAutosave()
 
-            const spriteData = tileSprites[currentTile]
-            if (!spriteData) return
-
-            const sprite = renderPixelSprite(k, spriteData, 2)
+            const spriteName = getOrCreateTileSpriteName(currentTile)
+            if (!spriteName) return
 
             const tile = k.add([
-                k.rect(sprite.width, sprite.height),
+                k.sprite(spriteName),
                 k.pos(snappedX, snappedY),
-                k.opacity(0),
+                k.scale(2),
+                k.anchor("topleft"),
+                k.area(),
                 "editorTile",
             ])
-
-            sprite.components.forEach(comp => tile.add(comp))
             tile.editorData = block
 
             return
@@ -223,10 +253,8 @@ export function editorScene(k) {
         // ---- SPAWN ----
         if (currentType === "spawn") {
 
-            blocks.splice(
-                blocks.findIndex(b => b.type === "spawn"),
-                1
-            )
+            const idx = blocks.findIndex(b => b.type === "spawn")
+            if (idx >= 0) blocks.splice(idx, 1)
 
             if (spawnEntity) spawnEntity.destroy()
 
@@ -327,15 +355,14 @@ export function editorScene(k) {
 
         const worldPos = k.toWorld(k.mousePos())
 
-        const target = k.get().reverse().find(e =>
-            (e.is("editorBlock") ||
-                e.is("editorEnemy") ||
-                e.is("editorTile") ||
-                e.is("editorSpawn")) &&
-            worldPos.x >= e.pos.x &&
-            worldPos.x <= e.pos.x + e.width &&
-            worldPos.y >= e.pos.y &&
-            worldPos.y <= e.pos.y + e.height
+        const hits = k.get("editorTile")
+            .concat(k.get("editorBlock"))
+            .concat(k.get("editorEnemy"))
+            .concat(k.get("editorSpawn"))
+
+        const target = hits.find(e =>
+            e.has?.("area") && e.isHovering?.() ||
+            (e.area && e.area.isPointInside?.(worldPos))
         )
 
         if (!target || !target.editorData) return
@@ -355,16 +382,21 @@ export function editorScene(k) {
         window.__LEVEL_DATA__ = blocks
         k.go("overworld")
     })
+
+    // Cycle tile
     k.onKeyPress("r", () => {
-
         if (currentType !== "tile") return
-
         currentTileIndex = (currentTileIndex + 1) % TILE_ORDER.length
         currentTile = TILE_ORDER[currentTileIndex]
-
         updateTilePreview()
         updateEditorUI()
     })
+
+    // Exit editor
+    k.onKeyPress("8", () => k.go("overworld"))
+
+    // Clear map
+    k.onKeyPress("delete", clearMap)
 
     function updateTilePreview() {
 
@@ -375,26 +407,18 @@ export function editorScene(k) {
 
         if (currentType !== "tile") return
 
-        const spriteData = tileSprites[currentTile]
-        if (!spriteData) return
-
-        const sprite = renderPixelSprite(k, spriteData, 2)
+        const spriteName = getOrCreateTileSpriteName(currentTile)
+        if (!spriteName) return
 
         tilePreview = k.add([
-            k.rect(sprite.width, sprite.height),
+            k.sprite(spriteName),
             k.pos(0, 0),
-            k.opacity(0),
+            k.scale(2),
+            k.anchor("topleft"),
+            k.opacity(0.5),
             k.z(2000),
         ])
-
-        sprite.components.forEach(comp => {
-            const child = tilePreview.add(comp)
-            child.opacity = 0.5
-        })
     }
-    k.onKeyPress("8", () => k.go("overworld"))
-
-    k.onKeyPress("delete", clearMap)
 
     function downloadJSON(data, filename = "level1.json") {
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
@@ -408,10 +432,8 @@ export function editorScene(k) {
 
     function clearMap() {
 
-        // Clear data
         blocks.length = 0
 
-        // Destroy all editor entities
         ;[
             ...k.get("editorBlock"),
             ...k.get("editorEnemy"),
@@ -422,19 +444,17 @@ export function editorScene(k) {
         spawnEntity = null
         spawnPreview = null
         enemyPreview = null
+        tilePreview = null
 
-        // Clear autosave
         localStorage.removeItem("autosave_level")
-
         console.log("Map cleared")
     }
 
-    // --------------- UI (unchanged) ---------------
+    // --------------- UI ---------------
     const panelWidth = k.width() * 0.20
     const marginX = k.width() * 0.02
     const marginY = k.height() * 0.02
 
-    const titleSize = Math.max(16, k.height() * 0.03)
     const bodySize = Math.max(13, k.height() * 0.022)
 
     function buildEditorText() {
@@ -460,14 +480,14 @@ export function editorScene(k) {
             styles: false,
             width: panelWidth * 0.85,
         }),
+        k.color(0, 0, 0), // black text ✅
         k.pos(marginX + panelWidth * 0.05, marginY + k.height() * 0.10),
         k.fixed(),
         k.z(1001),
     ])
 
-
-
     function updateEditorUI() {
+        // Only called on change events (good). Not every frame.
         uiBody.text = buildEditorText()
     }
 }

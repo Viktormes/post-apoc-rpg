@@ -35,8 +35,16 @@ export function spawnWorldTile(k, spriteData, x, y, options = {}) {
         k.pos(x, y),
         k.scale(scale),
         k.z(zIndex),
-        ...(solid ? [k.area(), k.body({ isStatic: true })] : []),
+        ...(solid ? [
+            k.area({
+                width: spriteData.width * scale,
+                height: spriteData.height * scale,
+                offset: k.vec2(0, 0),
+            }),
+            k.body({ isStatic: true }),
+        ] : []),
         "worldTile",
+
     ])
 
     tile.onUpdate(() => {

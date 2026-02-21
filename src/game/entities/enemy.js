@@ -1,5 +1,6 @@
 import { renderPixelSprite } from "../pixel/renderPixelSprite.js"
 import ghoulSprite from "../sprites/ghoul.json"
+import catSprite from "../sprites/cat.json"
 
 export function createEnemyTemplate({
                                         id,
@@ -37,6 +38,17 @@ export const enemyTypes = {
         sprite: ghoulSprite,
         width: ghoulSprite.width,
         height: ghoulSprite.height,
+    }),
+
+    cat: createEnemyTemplate({
+        id: "cat",
+        name: "Cat",
+        maxHP: 18,
+        damageMin: 3,
+        damageMax: 6,
+        sprite: catSprite,
+        width: catSprite.width,
+        height: catSprite.height,
     }),
 
     orc: createEnemyTemplate({

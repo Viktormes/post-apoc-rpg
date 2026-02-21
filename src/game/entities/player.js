@@ -106,6 +106,7 @@ export function createPlayer(k, { x = 80, y = 200 } = {}) {
         ])
     }
 
+
     // Attack properties
     player.isAttacking = false
     player.attackCooldown = 0
@@ -127,6 +128,8 @@ export function attachPlayerJumpControls(k, player, opts = {}) {
         if (!player.isGrounded()) return
 
         player.jump()
+
+        k.shake(0.2)
 
         // ----------------------------------
         // ✨ Jump Puff Effect
@@ -259,6 +262,7 @@ export function attachPlayerMovement(k, player, opts = {}) {
     k.onUpdate(() => {
         const grounded = player.isGrounded()
         const justLanded = grounded && !wasGrounded
+
 
         if (!grounded) {
             airTime += k.dt()
