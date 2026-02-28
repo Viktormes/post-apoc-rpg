@@ -1,6 +1,7 @@
 import { renderPixelSprite } from "../pixel/renderPixelSprite.js"
 import ghoulSprite from "../sprites/ghoul.json"
 import catSprite from "../sprites/cat.json"
+import orcSprite from "../sprites/orc.json"
 
 export function createEnemyTemplate({
                                         id,
@@ -8,6 +9,7 @@ export function createEnemyTemplate({
                                         maxHP,
                                         damageMin,
                                         damageMax,
+                                        speed = 1,
                                         shape = "rect",
                                         width = 24,
                                         height = 24,
@@ -20,6 +22,7 @@ export function createEnemyTemplate({
         maxHP,
         damageMin,
         damageMax,
+        speed,
         shape,
         width,
         height,
@@ -35,6 +38,7 @@ export const enemyTypes = {
         maxHP: 18,
         damageMin: 3,
         damageMax: 6,
+        speed: 5,
         sprite: ghoulSprite,
         width: ghoulSprite.width,
         height: ghoulSprite.height,
@@ -57,10 +61,10 @@ export const enemyTypes = {
         maxHP: 14,
         damageMin: 4,
         damageMax: 7,
-        shape: "rect",
-        width: 28,
-        height: 28,
-        color: [120, 180, 80],
+        speed: 20,
+        sprite: orcSprite,
+        width: orcSprite.width,
+        height: orcSprite.height,
     }),
 
     golem: createEnemyTemplate({
@@ -76,13 +80,9 @@ export const enemyTypes = {
     }),
 }
 
-export function spawnOverworldEnemy(k, template, x, y) {
+export function spawnOverworldEnemy(k, template, x, y, player, spawnId) {
 
     let enemy
-
-    // ---------------------------------
-    // Create visual
-    // ---------------------------------
 
     if (template.sprite) {
 
@@ -108,6 +108,11 @@ export function spawnOverworldEnemy(k, template, x, y) {
 
         enemy.hitWidth = sprite.width
         enemy.hitHeight = sprite.height
+
+        enemy.enemyType = template
+        enemy.spawnId = spawnId
+        enemy.spawnX = x
+        enemy.spawnY = y
 
     } else {
 
@@ -179,6 +184,35 @@ export function spawnOverworldEnemy(k, template, x, y) {
             })
         }
     }
+
+
+    enemy.onCollide("player", () => {
+
+        const screenFlash = k.add([
+            k.rect(k.width(), k.height()),
+            k.color(255, 255, 255),
+            k.opacity(1),
+            k.fixed(),
+            k.z(999999),
+        ])
+
+        k.tween(1, 0, 0.15, (o) => {
+            screenFlash.opacity = o
+        })
+
+        // Prevent double-trigger
+        enemy.paused = true
+
+        k.wait(0.15, () => {
+            k.go("battleTransition", {
+                enemyType: enemy.enemyType,
+                spawnId: enemy.spawnId,
+                returnPos: player.pos.clone(),
+                preemptive: false,
+            })
+        })
+
+    })
 
     // ---------------------------------
     // Impact particles
@@ -303,7 +337,6 @@ export function spawnOverworldEnemy(k, template, x, y) {
 
     enemy.onUpdate(() => {
 
-        const player = k.get("player")[0]
         if (!player) return
 
         const distance = Math.abs(player.pos.x - enemy.pos.x)

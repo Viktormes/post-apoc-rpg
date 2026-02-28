@@ -14,6 +14,7 @@ import rockSide2 from "../sprites/rockSide2.json"
 import rockSideTop from "../sprites/rockSideTop.json"
 import rockSideBot from "../sprites/rockSideBot.json"
 import rockRandom from "../sprites/rockRandom.json"
+import oneTile from "../sprites/oneTile.json"
 
 export const tileSprites = {
     grassTile,
@@ -31,5 +32,6 @@ export const tileSprites = {
     rockSide2,
     rockSideTop,
     rockSideBot,
-    rockRandom
+    rockRandom,
+    oneTile,
 }

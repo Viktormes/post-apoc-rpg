@@ -7,7 +7,7 @@ const k = kaplay({
     clearColor: [0, 0, 0, 1],
 })
 
-k.setGravity(1600)
+k.setGravity(2000)
 
 window.addEventListener("resize", () => {
     const w = window.innerWidth

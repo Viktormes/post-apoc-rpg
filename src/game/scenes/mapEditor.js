@@ -19,9 +19,7 @@ export function editorScene(k) {
     k.setCamScale(1)
 
     const blocks = []
-    let currentType = "platform"
-    let startPos = null
-    let preview = null
+    let currentType = "tile"
 
     let camX = k.width() / 2
     let camY = k.height() / 2
@@ -89,12 +87,10 @@ export function editorScene(k) {
             tilePreview.pos = k.vec2(snappedX, snappedY)
         }
 
-        if (!startPos) {
-            if (k.isKeyDown("a")) camX -= CAM_SPEED * dt
-            if (k.isKeyDown("d")) camX += CAM_SPEED * dt
-            if (k.isKeyDown("w")) camY -= CAM_SPEED * dt
-            if (k.isKeyDown("s")) camY += CAM_SPEED * dt
-        }
+        if (k.isKeyDown("a")) camX -= CAM_SPEED * dt
+        if (k.isKeyDown("d")) camX += CAM_SPEED * dt
+        if (k.isKeyDown("w")) camY -= CAM_SPEED * dt
+        if (k.isKeyDown("s")) camY += CAM_SPEED * dt
 
         k.setCamPos(camX, camY)
     })
@@ -134,6 +130,7 @@ export function editorScene(k) {
                     k.rect(b.w, b.h),
                     k.pos(b.x, b.y),
                     k.color(...enemyTypes[b.enemyId].color),
+                    k.area(),
                     k.z(1000),
                     "editorEnemy",
                 ])
@@ -155,15 +152,6 @@ export function editorScene(k) {
                 ])
                 tile.editorData = b
 
-            } else {
-
-                const entity = k.add([
-                    k.rect(b.w, b.h),
-                    k.pos(b.x, b.y),
-                    k.color(...blockTypes[b.type].color),
-                    "editorBlock",
-                ])
-                entity.editorData = b
             }
         }
     }
@@ -302,6 +290,7 @@ export function editorScene(k) {
                 k.rect(24, 24),
                 k.pos(block.x, block.y),
                 k.color(...enemyTypes[currentEnemyType].color),
+                k.area(),
                 "editorEnemy",
             ])
 
@@ -309,45 +298,6 @@ export function editorScene(k) {
             return
         }
 
-        // ---- RECTANGLE DRAW ----
-        startPos = worldPos
-
-        preview = k.add([
-            k.rect(1, 1),
-            k.pos(startPos),
-            k.color(...blockTypes[currentType].color),
-            k.opacity(0.4),
-        ])
-    })
-
-    // ---------------- RECT FINALIZE ----------------
-    k.onMouseRelease("left", () => {
-        if (!preview) return
-
-        const block = {
-            id: crypto.randomUUID(),
-            x: preview.pos.x,
-            y: preview.pos.y,
-            w: preview.width,
-            h: preview.height,
-            type: currentType,
-        }
-
-        blocks.push(block)
-        scheduleAutosave()
-
-        const entity = k.add([
-            k.rect(block.w, block.h),
-            k.pos(block.x, block.y),
-            k.color(...blockTypes[currentType].color),
-            "editorBlock",
-        ])
-
-        entity.editorData = block
-
-        preview.destroy()
-        preview = null
-        startPos = null
     })
 
     // ---------------- DELETE ----------------
@@ -355,22 +305,34 @@ export function editorScene(k) {
 
         const worldPos = k.toWorld(k.mousePos())
 
-        const hits = k.get("editorTile")
-            .concat(k.get("editorBlock"))
-            .concat(k.get("editorEnemy"))
-            .concat(k.get("editorSpawn"))
+        const allEntities = [
+            ...k.get("editorTile"),
+            ...k.get("editorEnemy"),
+            ...k.get("editorSpawn"),
+        ]
 
-        const target = hits.find(e =>
-            e.has?.("area") && e.isHovering?.() ||
-            (e.area && e.area.isPointInside?.(worldPos))
-        )
+        // Find first entity whose bounding box contains the click
+        const target = allEntities.find(e => {
+
+            const x = e.pos.x
+            const y = e.pos.y
+            const w = e.width ?? 0
+            const h = e.height ?? 0
+
+            return (
+                worldPos.x >= x &&
+                worldPos.x <= x + w &&
+                worldPos.y >= y &&
+                worldPos.y <= y + h
+            )
+        })
 
         if (!target || !target.editorData) return
 
-        blocks.splice(
-            blocks.findIndex(b => b.id === target.editorData.id),
-            1
-        )
+        const index = blocks.findIndex(b => b.id === target.editorData.id)
+        if (index !== -1) {
+            blocks.splice(index, 1)
+        }
 
         target.destroy()
         scheduleAutosave()
@@ -397,6 +359,21 @@ export function editorScene(k) {
 
     // Clear map
     k.onKeyPress("delete", clearMap)
+
+    k.onKeyPress("q", () => {
+        if (currentType !== "enemy") return
+
+        const index = ENEMY_ORDER.indexOf(currentEnemyType)
+        const nextIndex = (index + 1) % ENEMY_ORDER.length
+        currentEnemyType = ENEMY_ORDER[nextIndex]
+
+        // update preview color
+        if (enemyPreview) {
+            enemyPreview.color = k.rgb(...enemyTypes[currentEnemyType].color)
+        }
+
+        updateEditorUI()
+    })
 
     function updateTilePreview() {
 
@@ -435,7 +412,6 @@ export function editorScene(k) {
         blocks.length = 0
 
         ;[
-            ...k.get("editorBlock"),
             ...k.get("editorEnemy"),
             ...k.get("editorTile"),
             ...k.get("editorSpawn"),

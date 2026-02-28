@@ -6,7 +6,7 @@ import { gameState } from "../core/state.js"
 import level1 from "../levels/level1.json"
 import { enemyTypes, spawnOverworldEnemy } from "../entities/enemy.js"
 
-k.scene("overworld", () => {
+k.scene("overworld", ({ returnPos } = {}) => {
 
     const screenW = k.width()
     const screenH = k.height()
@@ -66,14 +66,25 @@ k.scene("overworld", () => {
     const cameraAnchor = k.add([k.pos(0, 0)])
     k.setCamScale(1.4)
 
-    const levelData = window.__LEVEL_DATA__ ?? level1
-    window.__LEVEL_DATA__ = null
+    const levelData =
+        gameState.activeLevel ??
+        window.__LEVEL_DATA__ ??
+        level1
+
+    if (window.__LEVEL_DATA__) {
+        gameState.activeLevel = window.__LEVEL_DATA__
+        window.__LEVEL_DATA__ = null
+    }
 
     const { spawn, enemySpawns } = loadLevel(k, levelData)
 
-    const spawnPos = spawn
+    const defaultSpawn = spawn
         ? k.vec2(spawn.x, spawn.y)
         : k.vec2(80, 200)
+
+    const spawnPos = returnPos
+        ? k.vec2(returnPos.x, returnPos.y)
+        : defaultSpawn
 
     const player = createPlayer(k, spawnPos.clone())
     player.opacity = 0
@@ -92,11 +103,18 @@ k.scene("overworld", () => {
     })
 
     enemySpawns.forEach(spawnData => {
+
+        if (gameState.defeatedEnemies.has(spawnData.id)) {
+            return // skip dead enemies
+        }
+
         spawnOverworldEnemy(
             k,
             enemyTypes[spawnData.enemyId],
             spawnData.x,
             spawnData.y,
+            player,
+            spawnData.id
         )
     })
 
@@ -206,6 +224,8 @@ k.scene("overworld", () => {
         k.fixed(),
         k.z(1003),
     ])
+
+
 
 // Update HP bar
     k.onUpdate(() => {
